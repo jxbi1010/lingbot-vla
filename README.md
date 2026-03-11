@@ -285,6 +285,22 @@ Our LingBot-VLA achieves state-of-the-art results on real-world and simulation b
   </tbody>
 </table>
 
+
+📢 We have released our checkpoints of LingBot-VLA-Posttrain-Robotwin:
+| Model Name | Huggingface | ModelScope | Description |
+| :--- | :---: | :---: | :---: |
+| LingBot-VLA-4B-Posttrain-Robotwin &nbsp; | [🤗 lingbot-vla-4b-posttrain-robotwin](https://huggingface.co/robbyant/lingbot-vla-4b-posttrain-robotwin) | [🤖 lingbot-vla-4b-posttrain-robotwin](https://modelscope.cn/models/Robbyant/lingbot-vla-4b-posttrain-robotwin) | LingBot-VLA-Posttrain-Robotwin *w/o* Depth|
+| LingBot-VLA-4B-Depth-Posttrain-Robotwin | [🤗 lingbot-vla-4b-depth-posttrain-robotwin](https://huggingface.co/robbyant/lingbot-vla-4b-depth-posttrain-robotwin) | [🤖 lingbot-vla-4b-depth-posttrain-robotwin](https://modelscope.cn/models/Robbyant/lingbot-vla-4b-depth-posttrain-robotwin) | LingBot-VLA-Posttrain-Robotwin *w/* Depth |
+
+We also provided [evaluation code](deploy\lingbot_robotwin_policy_rep.py) for the community to reproduce the performance of LingBot-VLA on Robotwin 2.0:
+```bash
+export QWEN25_PATH=path_to_Qwen2.5-VL-3B-Instruct
+python -m deploy.lingbot_robotwin_policy_rep \
+ --model_path Path_to_LingBot-VLA-Posttrain-Robotwin \
+ --use_length 50 \
+ --port port
+```
+
 <p align="center">
   <img src="assets/exp-gm-100.png" width="45%" style="margin: 0 10px;">
   <img src="assets/exp-robotwin.png" width="45%" style="margin: 0 10px;">
