@@ -292,7 +292,7 @@ Our LingBot-VLA achieves state-of-the-art results on real-world and simulation b
 | LingBot-VLA-4B-Posttrain-Robotwin &nbsp; | [🤗 lingbot-vla-4b-posttrain-robotwin](https://huggingface.co/robbyant/lingbot-vla-4b-posttrain-robotwin) | [🤖 lingbot-vla-4b-posttrain-robotwin](https://modelscope.cn/models/Robbyant/lingbot-vla-4b-posttrain-robotwin) | LingBot-VLA-Posttrain-Robotwin *w/o* Depth|
 | LingBot-VLA-4B-Depth-Posttrain-Robotwin | [🤗 lingbot-vla-4b-depth-posttrain-robotwin](https://huggingface.co/robbyant/lingbot-vla-4b-depth-posttrain-robotwin) | [🤖 lingbot-vla-4b-depth-posttrain-robotwin](https://modelscope.cn/models/Robbyant/lingbot-vla-4b-depth-posttrain-robotwin) | LingBot-VLA-Posttrain-Robotwin *w/* Depth |
 
-We also provided [evaluation code](deploy\lingbot_robotwin_policy_rep.py) for the community to reproduce the performance of LingBot-VLA on Robotwin 2.0:
+We also provided [evaluation code](deploy/lingbot_robotwin_policy_rep.py) for the community to reproduce the performance of LingBot-VLA on Robotwin 2.0:
 ```bash
 export QWEN25_PATH=path_to_Qwen2.5-VL-3B-Instruct
 python -m deploy.lingbot_robotwin_policy_rep \
