@@ -14,6 +14,7 @@
 
 
 import os
+from pathlib import Path
 from typing import Callable, Dict, List, Literal, Optional
 import numpy as np
 import torch
@@ -27,9 +28,11 @@ from lerobot.common.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatas
 import json
 from ..distributed.parallel_state import get_parallel_state
 from ..utils import logging
-from ..utils.dist_utils import main_process_first
 from .vla_data import *
 from .vla_data.transform import Normalizer, prepare_action, prepare_images, prepare_language, prepare_state
+from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
+from pathlib import Path
+
 logger = logging.get_logger(__name__)
 
 try:
@@ -104,7 +107,13 @@ class IterativeDataset(IterableDataset):
     def __iter__(self):
         for sample in self._data:
             if self._transform is not None:
-                yield self._transform(sample)
+                result = self._transform(sample)
+                if result is not None:
+                    if isinstance(result, (list, tuple)):
+                        for r in result:
+                            yield r
+                    else:
+                        yield result
             else:
                 yield sample
 
@@ -136,23 +145,30 @@ def build_mapping_dataset(
     Returns:
         Dataset: mapping dataset
     """
-    data_files = []
-    data_paths = data_path.split(",")
-    for data_path in data_paths:
-        if os.path.isdir(data_path):
-            data_files.extend([os.path.join(data_path, fn) for fn in os.listdir(data_path)])
-        elif os.path.isfile(data_path):
-            data_files.append(data_path)
-        else:
-            raise FileNotFoundError(f"Dataset {data_path} not exists.")
-    file_extenstion = os.path.splitext(data_files[0])[-1][1:]
-    if file_extenstion not in ["parquet", "jsonl", "json", "csv", "arrow"]:
-        raise ValueError(f"{file_extenstion} files are not supported.")
+    # data_files = []
+    # data_paths = data_path.split(",")
+    # for data_path in data_paths:
+    #     if os.path.isdir(data_path):
+    #         data_files.extend([os.path.join(data_path, fn) for fn in os.listdir(data_path)])
+    #     elif os.path.isfile(data_path):
+    #         data_files.append(data_path)
+    #     else:
+    #         raise FileNotFoundError(f"Dataset {data_path} not exists.")
+    # file_extenstion = os.path.splitext(data_files[0])[-1][1:]
+    # if file_extenstion not in ["parquet", "jsonl", "json", "csv", "arrow"]:
+    #     raise ValueError(f"{file_extenstion} files are not supported.")
 
-    file_extenstion = "json" if file_extenstion == "jsonl" else file_extenstion
-    with main_process_first():
-        dataset = load_dataset(file_extenstion, data_files=data_files, split=namespace)
+    # file_extenstion = "json" if file_extenstion == "jsonl" else file_extenstion
+    # dataset = load_dataset(file_extenstion, data_files=data_files, split=namespace)
 
+    # return MappingDataset(data=dataset, transform=transform)
+
+    path_obj = Path(data_path)
+    dataset = LeRobotDataset(
+        repo_id=path_obj.name, 
+        root=path_obj.parent,
+        local_files_only=True
+    )
     return MappingDataset(data=dataset, transform=transform)
 
 
@@ -193,4 +209,39 @@ def build_iterative_dataset(
     dataset = dataset.shuffle(seed=seed, buffer_size=10_000)
     dataset = split_dataset_by_node(dataset, parallel_state.dp_rank, parallel_state.dp_size)
 
+    return IterativeDataset(dataset, transform)
+
+
+def _collect_lerobot_parquet_files(data_path: str) -> List[str]:
+    """Collect parquet files from LeRobot dataset structure (data/chunk-*/episode_*.parquet)."""
+    path = Path(data_path)
+    if (path / "data").exists():
+        data_dir = path / "data"
+    else:
+        data_dir = path
+    parquet_files = sorted(data_dir.rglob("*.parquet"))
+    if not parquet_files:
+        raise FileNotFoundError(f"No parquet files found under {data_path}")
+    return [str(f) for f in parquet_files]
+
+
+def build_iterative_lerobot_dataset(
+    data_path: str,
+    transform: Optional[Callable] = None,
+    namespace: Literal["train", "test"] = "train",
+    seed: int = 42,
+    shuffle_buffer_size: int = 2000,
+) -> "IterableDataset":
+    """
+    Build iterative dataset for LeRobot format (images in parquet).
+    Handles nested structure: data/chunk-000/episode_000000.parquet.
+
+    Larger shuffle_buffer_size reduces network round-trips when streaming from
+    remote storage (OSS/S3) at the cost of memory.
+    """
+    data_files = _collect_lerobot_parquet_files(data_path)
+    parallel_state = get_parallel_state()
+    dataset = load_dataset("parquet", data_files=data_files, split=namespace, streaming=True)
+    dataset = dataset.shuffle(seed=seed, buffer_size=shuffle_buffer_size)
+    dataset = split_dataset_by_node(dataset, parallel_state.dp_rank, parallel_state.dp_size)
     return IterativeDataset(dataset, transform)

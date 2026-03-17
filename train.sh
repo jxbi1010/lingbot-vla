@@ -2,6 +2,9 @@
 
 set -x
 
+export HF_HOME="/home/ss-oss1/data/user/jiankai/Data/lerobot_test_data/lerobot_data_10k/cache"
+export HF_DATASETS_CACHE="/home/ss-oss1/data/user/jiankai/Data/lerobot_test_data/lerobot_data_10k/cache/datasets"
+
 export TOKENIZERS_PARALLELISM=false
 if [ -z "$CUDA_VISIBLE_DEVICES" ]; then
   NPROC_PER_NODE=$(nvidia-smi -L | wc -l)

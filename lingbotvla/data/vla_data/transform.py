@@ -1,5 +1,7 @@
+from pathlib import Path
 from typing import Dict
 
+import json
 import numpy as np
 import torch
 import math
@@ -16,6 +18,36 @@ IMAGE_KEYS = (
 )
 
 
+def extract_semantic_motion(task_str: str) -> str:
+    if not task_str or not isinstance(task_str, str):
+        return str(task_str) if task_str else ""
+
+    try:
+        # 1. Parse the string
+        parsed = json.loads(task_str)
+        
+        # 2. If it's still a string (double-encoded), parse it again
+        if isinstance(parsed, str):
+            return extract_semantic_motion(parsed)
+            
+        # 3. If it's a dictionary, look for our keys
+        if isinstance(parsed, dict):
+
+        # 3. Check for the nested "task" key and go deeper
+            if "task" in parsed:
+                return extract_semantic_motion(parsed["task"])
+            # Check for short_caption as a fallback
+            if "short_caption" in parsed:
+                return str(parsed["short_caption"])
+            # Check for the actual field we want
+            if "semantic_motion" in parsed:
+                return str(parsed["semantic_motion"])
+        
+        return str(task_str)
+    except (json.JSONDecodeError, TypeError):
+        return str(task_str)
+
+
 def dict_apply(func, d):
     """
     Apply a function to all values in a dictionary recursively.
@@ -27,6 +59,33 @@ def dict_apply(func, d):
         else:
             d[key] = func(value)
     return d
+
+
+def load_norm_stats_from_file(norm_stats_path: str) -> Dict:
+    """
+    Load normalization statistics from a JSON file under assets/norm_stats.
+
+    Supports both relative paths (e.g. assets/norm_stats/ego10k_pretrain_norm.json)
+    and absolute paths. Relative paths are resolved against the project root
+    (parent of lingbotvla package).
+
+    Args:
+        norm_stats_path: Path to the norm stats JSON file.
+
+    Returns:
+        The raw norm_stats dict from the JSON, for use with Normalizer(from_file=True).
+    """
+    path = Path(norm_stats_path)
+    if not path.is_absolute():
+        # Resolve relative to project root (lingbot-vla/, parent of lingbotvla package)
+        project_root = Path(__file__).resolve().parent.parent.parent.parent
+        path = project_root / norm_stats_path
+    if not path.exists():
+        raise FileNotFoundError(f"Norm stats file not found: {path}")
+    with open(path) as f:
+        data = json.load(f)
+    return data["norm_stats"]
+
 
 class Normalizer:
     def __init__(
@@ -54,11 +113,39 @@ class Normalizer:
                 norm_stats['observation.state']['q99'] = np.array(norm_stats['observation.state.arm.position']['q99'] + norm_stats['observation.state.effector.position']['q99'])
                 norm_stats['action']['q01'] = np.array(norm_stats['action.arm.position']['q01'][:6] + norm_stats['action.effector.position']['q01'][:1] + norm_stats['action.arm.position']['q01'][6:] + norm_stats['action.effector.position']['q01'][1:])
                 norm_stats['action']['q99'] = np.array(norm_stats['action.arm.position']['q99'][:6] + norm_stats['action.effector.position']['q99'][:1] + norm_stats['action.arm.position']['q99'][6:] + norm_stats['action.effector.position']['q99'][1:])
-            elif data_type == 'customized':
+            elif data_type == 'customized' or data_type == 'ego':
+                # Flat format: observation.state, action with mean, std, q01, q99, q02, q98
                 for key in norm_stats:
                     if isinstance(norm_stats[key], dict):
                         for sub_key in norm_stats[key]:
-                            norm_stats[key][sub_key] = np.array(norm_stats[key][sub_key])
+                            norm_stats[key][sub_key] = np.array(norm_stats[key][sub_key], dtype=np.float32)
+            elif data_type == 'auto':
+                # Auto-detect: flat format has observation.state/action with mean/std/q01 directly
+                has_flat = (
+                    "observation.state" in norm_stats
+                    and "action" in norm_stats
+                    and isinstance(norm_stats.get("observation.state"), dict)
+                    and "mean" in norm_stats.get("observation.state", {})
+                )
+                has_nested = "observation.state.arm.position" in norm_stats
+                if has_flat:
+                    for key in norm_stats:
+                        if isinstance(norm_stats[key], dict):
+                            for sub_key in norm_stats[key]:
+                                norm_stats[key][sub_key] = np.array(norm_stats[key][sub_key], dtype=np.float32)
+                elif has_nested:
+                    # Nested robotwin format
+                    norm_stats['observation.state'], norm_stats['action'] = {}, {}
+                    norm_stats['observation.state']['q01'] = np.array(norm_stats['observation.state.arm.position']['q01'][:6] + norm_stats['observation.state.effector.position']['q01'][:1] + norm_stats['observation.state.arm.position']['q01'][6:] + norm_stats['observation.state.effector.position']['q01'][1:])
+                    norm_stats['observation.state']['q99'] = np.array(norm_stats['observation.state.arm.position']['q99'][:6] + norm_stats['observation.state.effector.position']['q99'][:1] + norm_stats['observation.state.arm.position']['q99'][6:] + norm_stats['observation.state.effector.position']['q99'][1:])
+                    norm_stats['action']['q01'] = np.array(norm_stats['action.arm.position']['q01'][:6] + norm_stats['action.effector.position']['q01'][:1] + norm_stats['action.arm.position']['q01'][6:] + norm_stats['action.effector.position']['q01'][1:])
+                    norm_stats['action']['q99'] = np.array(norm_stats['action.arm.position']['q99'][:6] + norm_stats['action.effector.position']['q99'][:1] + norm_stats['action.arm.position']['q99'][6:] + norm_stats['action.effector.position']['q99'][1:])
+                else:
+                    raise ValueError(
+                        "Could not auto-detect norm stats format. "
+                        "Use data_type='ego' for flat format (observation.state, action) or "
+                        "data_type='robotwin' for nested format (observation.state.arm.position, etc.)."
+                    )
             self.norm_stats = norm_stats
         else:
             self.norm_stats = dict_apply(lambda x: x.astype(np.float32), norm_stats)
@@ -299,6 +386,7 @@ def prepare_language(config, language_tokenizer, observation: dict[str, Tensor])
         lang_masks = tokenized_prompt["attention_mask"].to(
             device=device, dtype=torch.bool
         )
+
     else:
         lang_tokens = observation["lang_tokens"].to(device=device)
         lang_masks = observation["lang_masks"].to(device=device, dtype=torch.bool)

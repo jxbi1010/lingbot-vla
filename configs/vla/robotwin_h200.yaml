@@ -14,12 +14,12 @@ data:
   norm_stats_file: assets/norm_stats/robotwin_50.json
 
 train:
-  output_dir: /path/to/lingbot_robotwin5tasks/
+  output_dir:  /home/jianxin/jx_ws/lingbot-vla/output/lingbot_robotwin_example
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
   module_fsdp_enable: true
-  use_compile: true
+  use_compile: false
   use_wandb: false
   rmpad: false
   rmpad_with_pos_ids: false

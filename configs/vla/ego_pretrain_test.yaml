@@ -7,20 +7,22 @@ model:
 
 data:
   datasets_type: vla
-  data_name: robotwin_5_new
-  train_path: /path/to/mixed_robotwin_5tasks
+  data_name: robotwin_example
+  train_path: /home/jianxin/jx_ws/datasets/ego_data
   num_workers: 8
   norm_type: bounds_99_woclip
-  norm_stats_file: assets/norm_stats/robotwin_50.json
+  norm_stats_file: assets/norm_stats/ego_pretrain_test_norm.json
 
 train:
-  output_dir: /path/to/lingbot_robotwin5tasks/
+  output_dir:  /home/jianxin/jx_ws/lingbot-vla/output/lingbot_ego_pretrain_test_v2
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
   module_fsdp_enable: true
-  use_compile: true
-  use_wandb: false
+  use_compile: false
+  use_wandb: true
+  wandb_project: lingbot-vla-ego-pretrain
+  wandb_name: ego-pretrain-10k
   rmpad: false
   rmpad_with_pos_ids: false
   ulysses_parallel_size: 1
@@ -31,12 +33,12 @@ train:
   max_state_dim: 75
   lr: 1.0e-4
   lr_decay_style: constant
-  num_train_epochs: 69
+  num_train_epochs: 1
   micro_batch_size: 32
   global_batch_size: 256
   max_steps: 220000
   ckpt_manager: dcp
   save_steps: 220000
-  save_epochs: 69
+  save_epochs: 1
   enable_fp32: true
-  enable_resume: true
+  enable_resume: false

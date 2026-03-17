@@ -8,6 +8,7 @@ from functools import partial
 from io import BytesIO
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Literal
 from collections import defaultdict
+import datetime
 import numpy as np
 import torch
 import torch.distributed as dist
@@ -20,7 +21,8 @@ from lingbotvla.data import (
     VLADataCollatorWithPacking,
     build_dataloader,
 )
-from lingbotvla.data.vla_data import liberoDataset, RobotwinDataset, CustomizedRobotwinDataset
+from torch.utils.data import ConcatDataset
+from lingbotvla.data.vla_data import liberoDataset, RobotwinDataset, CustomizedRobotwinDataset, AlohaAgilexDataset
 from lingbotvla.distributed.offloading import build_activation_offloading_context
 from lingbotvla.distributed.parallel_state import get_parallel_state, init_parallel_state
 from lingbotvla.distributed.torch_parallelize import build_parallelize_model
@@ -228,7 +230,7 @@ def main():
     logger.info(f"Process rank: {args.train.global_rank}, world size: {args.train.world_size}")
     logger.info_rank0(json.dumps(asdict(args), indent=2))
     torch.cuda.set_device(f"cuda:{args.train.local_rank}")
-    dist.init_process_group(backend="nccl")
+    dist.init_process_group(backend="nccl",timeout=datetime.timedelta(minutes=10))
     helper.set_seed(args.train.seed, args.train.enable_full_determinism)
     if args.train.local_rank == 0:
         helper.enable_third_party_logging()
@@ -313,7 +315,7 @@ def main():
         raise ValueError("Qwen2-VL does not support rmpad. Use `rmpad_with_pos_ids` instead.")
 
     data_collate_fn = []
-    if args.data.datasets_type == 'vla':
+    if args.data.datasets_type in ('vla'):
         data_collate_fn.append(VLADataCollatorWithPacking())
     else:
         if args.train.rmpad_with_pos_ids:
@@ -328,7 +330,29 @@ def main():
             if args.data.data_name == 'libero':
                 train_dataset = liberoDataset(repo_id=args.data.train_path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None,use_depth_align=use_depth_align)
             elif 'robotwin' in args.data.data_name.lower():
-                train_dataset = RobotwinDataset(repo_id=args.data.train_path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
+                # Support comma-separated train_path for multi-task training (multiple LeRobot datasets)
+                train_paths = [p.strip() for p in args.data.train_path.split(",") if p.strip()]
+                if len(train_paths) == 1:
+                    train_dataset = RobotwinDataset(repo_id=train_paths[0], config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
+                else:
+                    datasets = [
+                        RobotwinDataset(repo_id=path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
+                        for path in train_paths
+                    ]
+                    train_dataset = ConcatDataset(datasets)
+                    logger.info_rank0(f"Loaded {len(train_paths)} task datasets: {train_paths}")
+            elif args.data.data_name == 'aloha_agilex':
+                logger.info_rank0("Start building AlohaAgilex dataset")
+                train_paths = [p.strip() for p in args.data.train_path.split(",") if p.strip()]
+                if len(train_paths) == 1:
+                    train_dataset = AlohaAgilexDataset(repo_id=train_paths[0], config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
+                else:
+                    datasets = [
+                        AlohaAgilexDataset(repo_id=path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
+                        for path in train_paths
+                    ]
+                    train_dataset = ConcatDataset(datasets)
+                    logger.info_rank0(f"Loaded {len(train_paths)} task datasets: {train_paths}")
             args.train.compute_train_steps(args.data.max_seq_len, args.data.train_size, len(train_dataset))
         
         train_dataloader = build_dataloader(
@@ -430,6 +454,7 @@ def main():
         writer = SummaryWriter(log_dir=log_dir)
         if args.train.use_wandb:
             wandb.init(
+                project=args.train.wandb_project,
                 name=args.train.wandb_name,
                 config={**vars(args.model), **vars(args.data), **vars(args.train)},  # flatten dict
             )
@@ -639,6 +664,21 @@ def main():
                     for name, values in group_losses.items():
                         mean_loss = sum(values) / len(values)
                         writer.add_scalar(f"detailed_loss/{name}", mean_loss, global_step)
+
+                if args.train.use_wandb:
+                    wandb_log = {
+                        "training/loss": total_loss,
+                        "training/vla_loss": total_vla_loss,
+                        "training/depth_loss": total_depth_loss,
+                        "training/grad_norm": grad_norm,
+                        "training/lr": lr,
+                        "steptime": delta_time,
+                    }
+                    if dataset_names is not None and 'batch_mean_losses' in loss_log:
+                        for name, values in group_losses.items():
+                            mean_loss = sum(values) / len(values)
+                            wandb_log[f"detailed_loss/{name}"] = mean_loss
+                    wandb.log(wandb_log, step=global_step)
 
                 if args.train.enable_profiling and global_step <= args.train.profile_end_step:
                     profiler.step()

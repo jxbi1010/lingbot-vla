@@ -14,12 +14,13 @@
 
 
 import os
+from pathlib import Path
 from typing import Callable, Dict, List, Literal, Optional
 import numpy as np
 import torch
 from datasets import load_dataset
 from datasets.distributed import split_dataset_by_node
-from torch.utils.data import Dataset, IterableDataset
+from torch.utils.data import Dataset, IterableDataset, ConcatDataset
 from lerobot.common.policies.pi0.configuration_pi0 import PI0Config
 from torchvision.transforms.v2 import Resize
 from transformers import AutoTokenizer, AutoImageProcessor
@@ -27,9 +28,68 @@ from lerobot.common.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatas
 import json
 import yaml
 from PIL import Image
-from .transform import Normalizer, prepare_action, prepare_images, prepare_language, prepare_state
+from .transform import Normalizer, extract_semantic_motion, load_norm_stats_from_file, prepare_action, prepare_images, prepare_language, prepare_state
 
 from ...utils import logging
+
+
+def _get_task_subset_filter(data_config, dataset_meta) -> Optional[Callable]:
+    """Return a filter function for task_index, or None to include all tasks.
+    task_subset can be:
+    - List of ints: [0, 1, 2] for task indices
+    - List of str: task names that map to indices via dataset_meta.tasks
+    """
+    task_subset = getattr(data_config, "task_subset", None)
+    if task_subset is None:
+        return None
+    if isinstance(task_subset, (list, tuple)) and len(task_subset) == 0:
+        return None
+    # Resolve task names to indices if needed
+    if isinstance(task_subset[0], str):
+        task_indices = set()
+        for name in task_subset:
+            try:
+                idx = dataset_meta.tasks.index(name)
+                task_indices.add(idx)
+            except ValueError:
+                raise ValueError(f"Task '{name}' not found in dataset. Available: {dataset_meta.tasks}")
+        return lambda x: int(x["task_index"]) in task_indices
+    else:
+        task_indices = set(int(t) for t in task_subset)
+        return lambda x: int(x["task_index"]) in task_indices
+
+
+def _get_episodes_subset(data_config, dataset_meta) -> Optional[List[int]]:
+    """Return episode indices to load. episode_subset takes precedence over chunk_subset.
+    episode_subset can be:
+    - List of ints: [0, 1, 2, 3] for explicit indices
+    - String "0-100" for range 0 to 100 inclusive
+    - List [0, 100] for range 0 to 100 inclusive (2-element list = range)
+    """
+    episode_subset = getattr(data_config, "episode_subset", None)
+    if episode_subset is None:
+        pass
+    elif isinstance(episode_subset, str):
+        # "0-100" -> range 0 to 100 inclusive
+        parts = episode_subset.strip().split("-")
+        if len(parts) == 2:
+            start, end = int(parts[0].strip()), int(parts[1].strip())
+            return list(range(start, end + 1))
+    elif isinstance(episode_subset, (list, tuple)) and len(episode_subset) > 0:
+        if len(episode_subset) == 2 and all(isinstance(x, int) for x in episode_subset):
+            # [0, 100] -> range 0 to 100 inclusive
+            start, end = episode_subset[0], episode_subset[1]
+            return list(range(start, end + 1))
+        return list(episode_subset)
+    chunk_subset = getattr(data_config, "chunk_subset", None)
+    if chunk_subset is None:
+        return None
+    chunks_size = dataset_meta.chunks_size
+    total_episodes = dataset_meta.total_episodes
+    start = chunk_subset * chunks_size
+    end = min((chunk_subset + 1) * chunks_size, total_episodes)
+    return list(range(start, end))
+
 
 class VlaDataset(Dataset):
     def __init__(
@@ -110,16 +170,21 @@ class liberoDataset(Dataset):
         delta_timestamps = {
             "actions": [t / self.dataset_meta.fps for t in range(50)],
         }
+        episodes = _get_episodes_subset(data_config, self.dataset_meta)
         self.dataset = LeRobotDataset(
             repo_id=repo_id,
+            episodes=episodes,
             image_transforms=image_transforms,
             delta_timestamps=delta_timestamps,
         )
-        with open(self.norm_stats_file) as f:
-            self.norm_stats = json.load(f)
+        task_filter = _get_task_subset_filter(data_config, self.dataset_meta)
+        if task_filter is not None:
+            self.dataset.hf_dataset = self.dataset.hf_dataset.filter(
+                task_filter, desc="Filtering by task_subset"
+            )
+        norm_stats = load_norm_stats_from_file(self.norm_stats_file)
         self.normalizer = Normalizer(
-            # norm_stats=self.dataset.meta.stats,
-            norm_stats=self.norm_stats['norm_stats'],
+            norm_stats=norm_stats,
             from_file=True,
             data_type='libero',
             norm_type={
@@ -149,7 +214,7 @@ class liberoDataset(Dataset):
             "state": normalized_item["state"].to(torch.float32),
             "action": normalized_item["actions"].to(torch.float32),
             "action_is_pad": normalized_item["actions_is_pad"],
-            "prompt": [item["task"]],
+            "prompt": extract_semantic_motion(item["task"]),
         }
         state = prepare_state(self.config, batch_dict) # bs,8 -> bs,32
         lang_tokens, lang_masks = prepare_language(self.config, self.tokenizer, batch_dict) # bs, seq_len
@@ -187,22 +252,50 @@ class RobotwinDataset(Dataset):
         self.config = config
         self.tokenizer = tokenizer
         self.norm_stats_file = data_config.norm_stats_file
-        self.dataset_meta = LeRobotDatasetMetadata(repo_id)
+        train_path = getattr(data_config, "train_path", None) or repo_id
+        dataset_path = Path(train_path)
+        # Use dataset folder name as repo_id (not "local") to avoid 401 when fallback download is attempted
+        local_repo_id = dataset_path.name
+        self.dataset_meta = LeRobotDatasetMetadata(repo_id=local_repo_id, root=str(dataset_path))
         delta_timestamps = {
             "action": [t / self.dataset_meta.fps for t in range(50)],
         }
+        episodes = _get_episodes_subset(data_config, self.dataset_meta)
+        # root must be the full path to the dataset folder (containing meta/, data/)
         self.dataset = LeRobotDataset(
-            repo_id=repo_id,
+            repo_id=local_repo_id,
+            root=str(dataset_path),
+            episodes=episodes,
             image_transforms=image_transforms,
             delta_timestamps=delta_timestamps,
         )
-        with open(self.norm_stats_file) as f:
-            self.norm_stats = json.load(f)
+
+        required_columns = [
+        "observation.state", 
+        "action", 
+        "episode_index", 
+        "frame_index", 
+        "task_index", 
+        "timestamp", 
+        "index"
+        ]
+
+        if "action_is_pad" in self.dataset.hf_dataset.column_names:
+            required_columns.append("action_is_pad")
+        self.dataset.hf_dataset = self.dataset.hf_dataset.select_columns(required_columns)
+
+        # Filter by task_subset if specified (train selected tasks only)
+        task_filter = _get_task_subset_filter(data_config, self.dataset_meta)
+        if task_filter is not None:
+            self.dataset.hf_dataset = self.dataset.hf_dataset.filter(
+                task_filter, desc="Filtering by task_subset"
+            )
+
+        norm_stats = load_norm_stats_from_file(self.norm_stats_file)
         self.normalizer = Normalizer(
-            # norm_stats=self.dataset.meta.stats,
-            norm_stats=self.norm_stats['norm_stats'],
+            norm_stats=norm_stats,
             from_file=True,
-            data_type='robotwin',
+            data_type='auto',
             norm_type={
                 "observation.images.cam_high": "identity",
                 "observation.images.cam_left_wrist": "identity",
@@ -220,21 +313,31 @@ class RobotwinDataset(Dataset):
         item = self.dataset[idx]
         task = self.dataset_meta.tasks[int(item['task_index'])]
         assert task == item['task']
-
+        
         normalized_item = self.normalizer.normalize(item)
+        # Fallback: use black image when wrist cameras are missing (e.g. video decode failed, num_workers>0)
         base_image = (normalized_item["observation.images.cam_high"] * 255).to(torch.uint8)
-        left_wrist_image = (normalized_item["observation.images.cam_left_wrist"] * 255).to(
-            torch.uint8
+        left_wrist_image = (
+            (normalized_item["observation.images.cam_left_wrist"] * 255).to(torch.uint8)
+            if "observation.images.cam_left_wrist" in normalized_item
+            else torch.zeros_like(base_image)
         )
-        right_wrist_image = (normalized_item["observation.images.cam_right_wrist"] * 255).to(
-            torch.uint8
+        right_wrist_image = (
+            (normalized_item["observation.images.cam_right_wrist"] * 255).to(torch.uint8)
+            if "observation.images.cam_right_wrist" in normalized_item
+            else torch.zeros_like(base_image)
         )
+
+        task_index = int(item['task_index'])    
+        task_label = self.dataset_meta.tasks[task_index]
+        prompt = [extract_semantic_motion(task_label)]
+
         batch_dict =  {
             "image": {"base_0_rgb": base_image, "left_wrist_0_rgb": left_wrist_image, "right_wrist_0_rgb": right_wrist_image},
             "state": normalized_item["observation.state"].to(torch.float32),
             "action": normalized_item["action"].to(torch.float32),
             "action_is_pad": normalized_item["action_is_pad"],
-            "prompt": [item["task"]],
+            "prompt": prompt,
         }
         state = prepare_state(self.config, batch_dict) # bs,8 -> bs,32
         lang_tokens, lang_masks = prepare_language(self.config, self.tokenizer, batch_dict) # bs, seq_len
@@ -276,7 +379,155 @@ class RobotwinDataset(Dataset):
             f"Failed to fetch a valid item starting from idx={idx} after {attempts} attempts. "
             f"Last error: {repr(last_err)}"
         )
-    
+
+
+
+class AlohaAgilexDataset(Dataset):
+    def __init__(
+        self,
+        repo_id="aloha_agilex",
+        config=PI0Config,
+        tokenizer=AutoTokenizer,
+        data_config=None,
+        image_processor=None,
+        use_depth_align=False,
+    ):
+        image_transforms = Resize((data_config.img_size, data_config.img_size))
+        self.image_processor = image_processor
+        # [i / 30 for i in range(50)] represents action chunks in 50 steps at 30 FPS.
+        # The timestamps are set to 0 for the images and state, as we only use current obs.
+        self.config = config
+        self.tokenizer = tokenizer
+        self.norm_stats_file = data_config.norm_stats_file
+        train_path = getattr(data_config, "train_path", None) or repo_id
+        dataset_path = Path(train_path)
+        # Use dataset folder name as repo_id (not "local") to avoid 401 when fallback download is attempted
+        local_repo_id = dataset_path.name
+        self.dataset_meta = LeRobotDatasetMetadata(repo_id=local_repo_id, root=str(dataset_path))
+        delta_timestamps = {
+            "action": [t / self.dataset_meta.fps for t in range(50)],
+        }
+        episodes = _get_episodes_subset(data_config, self.dataset_meta)
+        # root must be the full path to the dataset folder (containing meta/, data/)
+        self.dataset = LeRobotDataset(
+            repo_id=local_repo_id,
+            root=str(dataset_path),
+            episodes=episodes,
+            image_transforms=image_transforms,
+            delta_timestamps=delta_timestamps,
+        )
+
+        required_columns = [
+        "observation.state", 
+        "action", 
+        "episode_index", 
+        "frame_index", 
+        "task_index", 
+        "timestamp", 
+        "index"
+        ]
+
+        if "action_is_pad" in self.dataset.hf_dataset.column_names:
+            required_columns.append("action_is_pad")
+        self.dataset.hf_dataset = self.dataset.hf_dataset.select_columns(required_columns)
+
+        # Filter by task_subset if specified (train selected tasks only)
+        task_filter = _get_task_subset_filter(data_config, self.dataset_meta)
+        if task_filter is not None:
+            self.dataset.hf_dataset = self.dataset.hf_dataset.filter(
+                task_filter, desc="Filtering by task_subset"
+            )
+
+        norm_stats = load_norm_stats_from_file(self.norm_stats_file)
+        self.normalizer = Normalizer(
+            norm_stats=norm_stats,
+            from_file=True,
+            data_type='auto',
+            norm_type={
+                "observation.images.cam_f": "identity",
+                "observation.images.cam_l": "identity",
+                "observation.images.cam_r": "identity",
+                "observation.state": data_config.norm_type,
+                "action": data_config.norm_type,
+            },
+        )
+        self.use_depth_align = use_depth_align
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def getdata(self, idx):
+        item = self.dataset[idx]
+        task = self.dataset_meta.tasks[int(item['task_index'])]
+        assert task == item['task']
+        
+        normalized_item = self.normalizer.normalize(item)
+        # Fallback: use black image when wrist cameras are missing (e.g. video decode failed, num_workers>0)
+        base_image = (normalized_item["observation.images.cam_f"] * 255).to(torch.uint8)
+        left_wrist_image = (
+            (normalized_item["observation.images.cam_l"] * 255).to(torch.uint8)
+            if "observation.images.cam_l" in normalized_item
+            else torch.zeros_like(base_image)
+        )
+        right_wrist_image = (
+            (normalized_item["observation.images.cam_r"] * 255).to(torch.uint8)
+            if "observation.images.cam_r" in normalized_item
+            else torch.zeros_like(base_image)
+        )
+
+        task_index = int(item['task_index'])    
+        task_label = self.dataset_meta.tasks[task_index]
+        prompt = [extract_semantic_motion(task_label)]
+
+        batch_dict =  {
+            "image": {"base_0_rgb": base_image, "left_wrist_0_rgb": left_wrist_image, "right_wrist_0_rgb": right_wrist_image},
+            "state": normalized_item["observation.state"].to(torch.float32),
+            "action": normalized_item["action"].to(torch.float32),
+            "action_is_pad": normalized_item["action_is_pad"],
+            "prompt": prompt,
+        }
+        state = prepare_state(self.config, batch_dict) # bs,8 -> bs,32
+        lang_tokens, lang_masks = prepare_language(self.config, self.tokenizer, batch_dict) # bs, seq_len
+        actions = prepare_action(self.config, batch_dict) # bs,50,7 -> bs,50,32 , 7
+        images, img_masks, pil_images = prepare_images(self.config, self.image_processor, batch_dict, use_depth_align=self.use_depth_align)
+
+        batch_dict = {
+            'images': images,
+            'img_masks': img_masks,
+            'state': state,
+            'lang_tokens': lang_tokens,
+            'lang_masks': lang_masks,
+            'actions': actions,
+            'action_is_pad': batch_dict['action_is_pad'],
+        }
+        if self.use_depth_align: batch_dict['pil_images'] = pil_images
+
+        return batch_dict
+
+    def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
+        if idx < 0 or idx >= len(self):
+            raise IndexError(f"Index {idx} out of bounds.")
+        max_retries = 200
+        attempts = 0
+        cur = idx
+        last_err = None
+        while attempts < max_retries:
+            try:
+                return self.getdata(cur)
+            except Exception as e:
+                last_err = e
+                attempts += 1
+                cur = np.random.randint(0, len(self))
+                if cur >= len(self):
+                    cur = 0
+                continue
+
+        raise RuntimeError(
+            f"Failed to fetch a valid item starting from idx={idx} after {attempts} attempts. "
+            f"Last error: {repr(last_err)}"
+        )
+
+
 class CustomizedRobotwinDataset(Dataset):
     def __init__(
         self,
@@ -298,18 +549,23 @@ class CustomizedRobotwinDataset(Dataset):
         delta_timestamps = {
             "action": [t / self.dataset_meta.fps for t in range(50)],
         }
+        episodes = _get_episodes_subset(data_config, self.dataset_meta)
         self.dataset = LeRobotDataset(
             repo_id=repo_id,
+            episodes=episodes,
             image_transforms=image_transforms,
             delta_timestamps=delta_timestamps,
         )
-        with open(self.norm_stats_file) as f:
-            self.norm_stats = json.load(f)
+        task_filter = _get_task_subset_filter(data_config, self.dataset_meta)
+        if task_filter is not None:
+            self.dataset.hf_dataset = self.dataset.hf_dataset.filter(
+                task_filter, desc="Filtering by task_subset"
+            )
+        norm_stats = load_norm_stats_from_file(self.norm_stats_file)
         self.normalizer = Normalizer(
-            # norm_stats=self.dataset.meta.stats,
-            norm_stats=self.norm_stats['norm_stats'],
+            norm_stats=norm_stats,
             from_file=True,
-            data_type='customized',
+            data_type='auto',
             norm_type={
                 "observation.images.cam_high": "identity",
                 "observation.images.cam_left_wrist": "identity",
@@ -329,12 +585,17 @@ class CustomizedRobotwinDataset(Dataset):
         assert task == item['task']
 
         normalized_item = self.normalizer.normalize(item)
+        # Fallback: use black image when wrist cameras are missing (e.g. video decode failed, num_workers>0)
         base_image = (normalized_item["observation.images.cam_high"] * 255).to(torch.uint8)
-        left_wrist_image = (normalized_item["observation.images.cam_left_wrist"] * 255).to(
-            torch.uint8
+        left_wrist_image = (
+            (normalized_item["observation.images.cam_left_wrist"] * 255).to(torch.uint8)
+            if "observation.images.cam_left_wrist" in normalized_item
+            else torch.zeros_like(base_image)
         )
-        right_wrist_image = (normalized_item["observation.images.cam_right_wrist"] * 255).to(
-            torch.uint8
+        right_wrist_image = (
+            (normalized_item["observation.images.cam_right_wrist"] * 255).to(torch.uint8)
+            if "observation.images.cam_right_wrist" in normalized_item
+            else torch.zeros_like(base_image)
         )
         batch_dict =  {
             "image": {"base_0_rgb": base_image, "left_wrist_0_rgb": left_wrist_image, "right_wrist_0_rgb": right_wrist_image},

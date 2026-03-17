@@ -53,15 +53,57 @@ BASE_MODEL_PATH = {
     'lingbotvla': os.environ.get('QWEN25_PATH', './Qwen2.5-VL-3B-Instruct/'),
 }
 
+
+def resolve_checkpoint_path(model_path: str) -> str:
+    """
+    Resolve model_path to the actual checkpoint directory containing config.json and *.safetensors.
+    - If model_path already has config.json and safetensors, return as-is.
+    - If model_path is an output dir (e.g. output/lingbot_robotwin5tasks), find the latest
+      checkpoints/global_step_*/hf_ckpt and return that.
+    """
+    path = Path(model_path).resolve()
+    if not path.exists():
+        raise FileNotFoundError(f"Model path does not exist: {model_path}")
+
+    config_file = path / "config.json"
+    safetensors = list(path.glob("*.safetensors"))
+    if config_file.exists() and safetensors:
+        return str(path)
+
+    # Look for checkpoints/global_step_*/hf_ckpt
+    checkpoints_dir = path / "checkpoints"
+    if checkpoints_dir.exists():
+        hf_ckpts = []
+        for step_dir in checkpoints_dir.iterdir():
+            if step_dir.is_dir() and step_dir.name.startswith("global_step_"):
+                hf_ckpt = step_dir / "hf_ckpt"
+                if hf_ckpt.exists() and (hf_ckpt / "config.json").exists():
+                    step_num = int(step_dir.name.split("_")[-1])
+                    hf_ckpts.append((step_num, hf_ckpt))
+        if hf_ckpts:
+            hf_ckpts.sort(key=lambda x: x[0], reverse=True)
+            resolved = hf_ckpts[0][1]
+            print(f"Resolved checkpoint: {model_path} -> {resolved}")
+            return str(resolved)
+
+    raise FileNotFoundError(
+        f"No valid checkpoint found in {model_path}. "
+        "Expected either: (1) a directory with config.json and *.safetensors, or "
+        "(2) an output dir with checkpoints/global_step_*/hf_ckpt/"
+    )
+
+
 def load_model_weights(policy, path_to_pi_model, strict=True):
+    t0 = time.time()
     all_safetensors = glob(os.path.join(path_to_pi_model, "*.safetensors"))
     merged_weights = {}
 
-    for file_path in tqdm(all_safetensors):
+    for file_path in tqdm(all_safetensors, desc="Loading weights"):
         with safe_open(file_path, framework="pt", device="cpu") as f:
             for key in f.keys():
                 merged_weights[key] = f.get_tensor(key)
     policy.load_state_dict(merged_weights, strict=strict)
+    print(f"  [{(time.time() - t0):.1f}s] Loaded {len(merged_weights)} tensors into model")
 
 
 def center_crop_image(image: Union[np.ndarray, Image.Image]) -> Image.Image:
@@ -236,29 +278,48 @@ class QwenPiServer:
         self.chunk_ret = chunk_ret
 
         self.task_description = None
-        
+
+        t0 = time.time()
         self.vla = self.load_vla(path_to_pi_model)
+        t1 = time.time()
+        print(f"  [{t1 - t0:.1f}s] Moving model to GPU ...")
         self.vla = self.vla.cuda().eval()
+        t2 = time.time()
+        print(f"  [{t2 - t0:.1f}s] Model on GPU")
         if use_bf16:
             self.vla = self.vla.to(torch.bfloat16)
         elif use_fp32:
             self.vla.model.float()
+        print(f"Ready for inference in {time.time() - t0:.1f}s total")
         self.global_step = 0
         self.last_action_chunk = None
         self.use_bf16 = use_bf16
         self.use_fp32 = use_fp32
 
     def load_vla(self, path_to_pi_model) -> LingbotVlaPolicy:
-        # load model
-    
-        print(f"loading model from: {path_to_pi_model}")
+        t_start = time.time()
+
+        print(f"[0.0s] Loading model from: {path_to_pi_model}")
         config = PreTrainedConfig.from_pretrained(path_to_pi_model)
-        
-        # load training config
-        training_config_path = Path(path_to_pi_model).parent.parent.parent/'lingbotvla_cli.yaml'
+        print(f"  [{(time.time() - t_start):.1f}s] Loaded config")
+
+        # load training config - search upward for lingbotvla_cli.yaml
+        model_path = Path(path_to_pi_model).resolve()
+        training_config_path = None
+        for parent in [model_path] + list(model_path.parents):
+            candidate = parent / 'lingbotvla_cli.yaml'
+            if candidate.exists():
+                training_config_path = candidate
+                break
+        if training_config_path is None:
+            raise FileNotFoundError(
+                f"lingbotvla_cli.yaml not found in {path_to_pi_model} or any parent directory. "
+                "Ensure you use a checkpoint from training (output_dir/checkpoints/...) which has the config."
+            )
         with open(training_config_path, 'r') as f:
             training_config = yaml.safe_load(f)
         f.close()
+        print(f"  [{(time.time() - t_start):.1f}s] Loaded lingbotvla_cli.yaml")
 
         # update model config according to training config
         training_model_config = training_config['model']
@@ -285,21 +346,24 @@ class QwenPiServer:
         
         qwen_config = AutoConfig.from_pretrained(base_model_path)
         config = merge_qwen_config(config, qwen_config)
+        print(f"  [{(time.time() - t_start):.1f}s] Merged Qwen config")
 
         if 'vocab_size' in training_config['model'] and training_config['model']['vocab_size'] != 0:
             config.vocab_size = training_config['model']['vocab_size']
         # load processors
+        print(f"  [{(time.time() - t_start):.1f}s] Loading tokenizer & image processor from {base_model_path} ...")
         self.processor = build_processor(base_model_path)
         self.language_tokenizer = self.processor.tokenizer
         self.image_processor = self.processor.image_processor
         data_config = SimpleNamespace(**training_config['data'])
-        
-        print('Initializing model ... ')
+        print(f"  [{(time.time() - t_start):.1f}s] Tokenizer & processor ready")
 
+        print(f"  [{(time.time() - t_start):.1f}s] Initializing model architecture ...")
         if 'paligemma' in training_base_model:
             policy = PI0InfernecePolicy(config, tokenizer_path=base_model_path)
         else:
             policy = LingBotVlaInferencePolicy(config, tokenizer_path=base_model_path)
+        print(f"  [{(time.time() - t_start):.1f}s] Model architecture created, loading weights ...")
 
         load_model_weights(policy, path_to_pi_model, strict=True)
         
@@ -330,7 +394,9 @@ class QwenPiServer:
             },
         )
 
-        print('Model initialized ... ')
+        elapsed = time.time() - t_start
+        print(f"  [{elapsed:.1f}s] Normalizer loaded")
+        print(f"Model initialized in {elapsed:.1f}s total")
 
         return policy
 
@@ -478,7 +544,8 @@ def main():
 
     args = parser.parse_args()
 
-    model = QwenPiServer(args.model_path, use_length=args.use_length, chunk_ret = args.chunk_ret)
+    resolved_path = resolve_checkpoint_path(args.model_path)
+    model = QwenPiServer(resolved_path, use_length=args.use_length, chunk_ret = args.chunk_ret)
     model_server = WebsocketPolicyServer(model, port=args.port)
     model_server.serve_forever()
 

@@ -1,0 +1,12 @@
+model:
+  model_path: /path/to/LingBot-VLA
+  tokenizer_path: /path/to/Qwen2.5-VL-3B-Instruct/
+
+data:
+  datasets_type: vla
+  train_path: /home/jianxin/jx_ws/franka_data/handover_mic-franka_clean_50
+  norm_path: assets/norm_stats/franka_data_norm.json
+
+train:
+  global_batch_size: 512
+  output_dir: output/norm

@@ -240,6 +240,18 @@ class DataArguments:
         default=True,
         metadata={"help": "Whether to pin memory for dataloader."},
     )
+    chunk_subset: Optional[int] = field(
+        default=None,
+        metadata={"help": "If set (e.g. 0), only load episodes from this chunk (chunk-000 for 0). Reduces load for debugging."},
+    )
+    episode_subset: Optional[List[int]] = field(
+        default=None,
+        metadata={"help": "If set, only load these episodes. Use [0,1,2,3] for explicit indices, or [0,100] for range 0-100 inclusive. Overrides chunk_subset."},
+    )
+    task_subset: Optional[List[Union[int, str]]] = field(
+        default=None,
+        metadata={"help": "If set, only load these tasks. Use task indices [0,1,2] or task names [\"open_microwave\", \"click_bell\"]. Applies to single-dataset multi-task data. Ignored when train_path has multiple comma-separated paths."},
+    )
 
     def __post_init__(self):
         if self.text_keys is None:
@@ -596,7 +608,10 @@ class TrainingArguments:
         elif self.max_steps is not None:
             self._train_steps = self.max_steps
         else:
-            raise ValueError("Please provide `dataset_length` or `max_steps`!")
+            raise ValueError(
+                "For iterable datasets (no __len__), please set `train.max_steps` in config. "
+                "Alternatively provide `dataset_length` for mapping datasets."
+            )
 
     @property
     def train_steps(self) -> int:
@@ -682,6 +697,14 @@ def _convert_str_dict(input_dict: Dict[str, Any]) -> Dict[str, Any]:
     return input_dict
 
 
+def _parse_int_or_str(s: str):
+    """Parse CLI string as int if possible, else keep as str. For List[Union[int, str]]."""
+    try:
+        return int(s)
+    except ValueError:
+        return s
+
+
 def _make_choice_type_function(choices: List[Any]) -> Callable[[str], Any]:
     """
     Creates a mapping function from each choices string representation to the actual value. Used to support multiple
@@ -758,7 +781,13 @@ def parse_args(rootclass: T) -> T:
                     parser_kwargs["const"] = True
 
             elif isclass(origin_type) and issubclass(origin_type, list):
-                parser_kwargs["type"] = attr_type.__args__[0]
+                args = getattr(attr_type, "__args__", None)
+                elem_type = args[0] if args else str
+                # Union[int, str] needs a custom parser; argparse expects a callable
+                if getattr(elem_type, "__origin__", None) is Union:
+                    parser_kwargs["type"] = _parse_int_or_str
+                else:
+                    parser_kwargs["type"] = elem_type
                 parser_kwargs["nargs"] = "+"
                 list_fields.add(f"{base}.{attr.name}")
                 if attr.default_factory is not MISSING:
@@ -790,19 +819,37 @@ def parse_args(rootclass: T) -> T:
     input_data = {}
     if cmd_args[0].endswith(".yaml") or cmd_args[0].endswith(".yml"):
         input_path = cmd_args.pop(0)
+        config_dir = os.path.dirname(os.path.abspath(input_path))
         with open(os.path.abspath(input_path), encoding="utf-8") as f:
-            input_data: Dict[str, Dict[str, Any]] = yaml.safe_load(f)
+            input_data = yaml.safe_load(f) or {}
+
+        # Resolve _base_ inheritance (merge base config, override with current)
+        if "_base_" in input_data:
+            base_ref = input_data.pop("_base_")
+            if not os.path.isabs(base_ref):
+                base_ref = os.path.join(config_dir, base_ref)
+            with open(base_ref, encoding="utf-8") as f:
+                base_data = yaml.safe_load(f) or {}
+            if "_base_" in base_data:
+                base_data.pop("_base_")  # avoid recursive base for now
+            for key in base_data:
+                if key not in input_data:
+                    input_data[key] = base_data[key]
+                elif isinstance(input_data[key], dict) and isinstance(base_data[key], dict):
+                    input_data[key] = {**base_data[key], **input_data[key]}
 
     elif cmd_args[0].endswith(".json"):
         input_path = cmd_args.pop(0)
         with open(os.path.abspath(input_path), encoding="utf-8") as f:
-            input_data: Dict[str, Dict[str, Any]] = json.load(f)
+            input_data = json.load(f)
     
     for base, arg_dict in input_data.items():
+        if not isinstance(arg_dict, dict):
+            continue
         for arg_name, arg_value in arg_dict.items():
             if f"--{base}.{arg_name}=" not in cmd_args_string:  # lower priority
-                # Skip list fields with None values to use default
-                if f"{base}.{arg_name}" in list_fields and arg_value is None:
+                # Skip None values to use default (avoids json.dumps(None) -> 'null' which argparse can't parse for int/optional)
+                if arg_value is None:
                     continue
 
                 cmd_args.append(f"--{base}.{arg_name}")
