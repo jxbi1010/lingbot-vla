@@ -2,8 +2,11 @@
 
 set -x
 
-export HF_HOME="/home/ss-oss1/data/user/jiankai/Data/lerobot_test_data/lerobot_data_10k/cache"
-export HF_DATASETS_CACHE="/home/ss-oss1/data/user/jiankai/Data/lerobot_test_data/lerobot_data_10k/cache/datasets"
+# export HF_HOME="/home/ss-oss1/data/user/jiankai/Data/lerobot_test_data/lerobot_data_10k/cache"
+# export HF_DATASETS_CACHE="/home/ss-oss1/data/user/jiankai/Data/lerobot_test_data/lerobot_data_10k/cache/datasets"
+# Use writable cache (arena sets HF_HOME/HF_DATASETS_CACHE; fallback for local dev)
+export HF_HOME="/home/workspace/jianxin/cache/huggingface"
+export HF_DATASETS_CACHE="/home/workspace/jianxin/cache/huggingface/datasets"
 
 export TOKENIZERS_PARALLELISM=false
 if [ -z "$CUDA_VISIBLE_DEVICES" ]; then
