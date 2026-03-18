@@ -7,7 +7,7 @@ model:
 
 data:
   datasets_type: vla
-  data_name: aloha_agilex #aloha_agilex #robotwin
+  data_name: robotwin #aloha_agilex #robotwin
   # Single dataset: path to one LeRobot v2.1 folder (all tasks loaded by default)
   # Multi-task: comma-separated paths, e.g. "/path/task1,/path/task2,/path/task3"
   train_path: /ss-oss1/data/user/shawks/lerobot_test_data/lerobot_video_03
