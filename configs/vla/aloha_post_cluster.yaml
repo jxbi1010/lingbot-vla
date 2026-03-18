@@ -1,6 +1,6 @@
 model:
-  model_path: /ss-oss1/data/user/jxbi/lingbot/checkpoints/lingbot-vla-4b
-  tokenizer_path: /ss-oss1/data/user/jxbi/lingbot/checkpoints/qwen2.5-vl-3b-instruct
+  model_path: /home/ss-oss1/data/user/jxbi/lingbot/checkpoints/lingbot-vla-4b
+  tokenizer_path: /home/ss-oss1/data/user/jxbi/lingbot/checkpoints/qwen2.5-vl-3b-instruct
   post_training: true
   adanorm_time: true
   old_adanorm: true
@@ -10,7 +10,7 @@ data:
   data_name: robotwin #aloha_agilex #robotwin
   # Single dataset: path to one LeRobot v2.1 folder (all tasks loaded by default)
   # Multi-task: comma-separated paths, e.g. "/path/task1,/path/task2,/path/task3"
-  train_path: /ss-oss1/data/user/shawks/lerobot_test_data/lerobot_video_03
+  train_path: /home/ss-oss1/data/user/shawks/lerobot_test_data/lerobot_video_03
   num_workers: 20
   norm_type: bounds_99_woclip
   norm_stats_file: assets/norm_stats/ego_pretrain_10k_norm.json #
