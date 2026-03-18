@@ -18,7 +18,7 @@ data:
   episode_subset: null # inclusive e.g.[1,99]
   # task_subset: null  # Select tasks: [0,1,2] by index, or ["task_name_1","task_name_2"] by name
 train:
-  output_dir:  /workspace/data/user/jxbi/lingbot/output/test18 #
+  output_dir:  /home/workspace/data/user/jxbi/lingbot/output/test18 #
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
