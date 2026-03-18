@@ -1,16 +1,16 @@
 model:
-  model_path: /home/ss-oss1/data/user/jxbi/lingbot/checkpoints/lingbot-vla-4b
-  tokenizer_path: /home/ss-oss1/data/user/jxbi/lingbot/checkpoints/qwen2.5-vl-3b-instruct
+  model_path: /ss-oss1/data/user/jxbi/lingbot/checkpoints/lingbot-vla-4b
+  tokenizer_path: /ss-oss1/data/user/jxbi/lingbot/checkpoints/qwen2.5-vl-3b-instruct
   post_training: true
   adanorm_time: true
   old_adanorm: true
 
 data:
   datasets_type: vla
-  data_name: robotwin #aloha_agilex
+  data_name: aloha_agilex #aloha_agilex #robotwin
   # Single dataset: path to one LeRobot v2.1 folder (all tasks loaded by default)
   # Multi-task: comma-separated paths, e.g. "/path/task1,/path/task2,/path/task3"
-  train_path: /home/ss-oss1/data/user/shawks/lerobot_test_data/lerobot_video_03
+  train_path: /ss-oss1/data/user/shawks/lerobot_test_data/lerobot_video_03
   num_workers: 20
   norm_type: bounds_99_woclip
   norm_stats_file: assets/norm_stats/ego_pretrain_10k_norm.json #
@@ -18,7 +18,7 @@ data:
   episode_subset: null # inclusive e.g.[1,99]
   # task_subset: null  # Select tasks: [0,1,2] by index, or ["task_name_1","task_name_2"] by name
 train:
-  output_dir:  /home/ss-oss1/data/user/jxbi/lingbot/output/test18 #
+  output_dir:  /workspace/data/user/jxbi/lingbot/output/test18 #
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false

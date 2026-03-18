@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 
 # Update this to your data directory
-DATA_DIR = Path("/home/ss-oss1/data/user/shawks/lerobot_test_data/lerobot_video_03")
+DATA_DIR = Path("/home/ss-oss1/data/user/shawks/DATA/agilex-real-world-data/disk-1/Badminton_shuttlecock_storage")
 
 def inspect_parquet():
     # Find the first parquet file to use as a sample
