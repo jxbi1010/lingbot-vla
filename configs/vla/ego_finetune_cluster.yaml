@@ -11,7 +11,7 @@ data:
   train_path: /home/ss-oss1/data/dataset/egocentric/training_egocentric/retarget_lerobot/database_lerobot_00/
   num_workers: 8
   norm_type: bounds_99_woclip
-  norm_stats_file: norm_stats/database_lerobot_00_norm.json #
+  norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json #
   chunk_subset: null  # # [0] = chunk-000,[0, 99] = chunk-000 to chunk-099 inclusive, etc. (set to null for full data)
   episode_subset: null # inclusive e.g.[0,99]
 train:
