@@ -7,6 +7,7 @@ set -x
 # Use writable cache (arena sets HF_HOME/HF_DATASETS_CACHE; fallback for local dev)
 export HF_HOME="/home/workspace/jianxin/cache/huggingface"
 export HF_DATASETS_CACHE="/home/workspace/jianxin/cache/huggingface/datasets"
+export WANDB_API_KEY=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
 
 export TOKENIZERS_PARALLELISM=false
 if [ -z "$CUDA_VISIBLE_DEVICES" ]; then
