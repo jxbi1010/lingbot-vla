@@ -20,7 +20,7 @@ import numpy as np
 import torch
 from datasets import load_dataset
 from datasets.distributed import split_dataset_by_node
-from torch.utils.data import Dataset, IterableDataset, ConcatDataset
+from torch.utils.data import Dataset, IterableDataset
 from lerobot.common.policies.pi0.configuration_pi0 import PI0Config
 from torchvision.transforms.v2 import Resize
 from transformers import AutoTokenizer, AutoImageProcessor
@@ -33,38 +33,15 @@ from .transform import Normalizer, extract_semantic_motion, load_norm_stats_from
 from ...utils import logging
 
 
-def _get_task_subset_filter(data_config, dataset_meta) -> Optional[Callable]:
-    """Return a filter function for task_index, or None to include all tasks.
-    task_subset can be:
-    - List of ints: [0, 1, 2] for task indices
-    - List of str: task names that map to indices via dataset_meta.tasks
-    """
-    task_subset = getattr(data_config, "task_subset", None)
-    if task_subset is None:
-        return None
-    if isinstance(task_subset, (list, tuple)) and len(task_subset) == 0:
-        return None
-    # Resolve task names to indices if needed
-    if isinstance(task_subset[0], str):
-        task_indices = set()
-        for name in task_subset:
-            try:
-                idx = dataset_meta.tasks.index(name)
-                task_indices.add(idx)
-            except ValueError:
-                raise ValueError(f"Task '{name}' not found in dataset. Available: {dataset_meta.tasks}")
-        return lambda x: int(x["task_index"]) in task_indices
-    else:
-        task_indices = set(int(t) for t in task_subset)
-        return lambda x: int(x["task_index"]) in task_indices
-
-
 def _get_episodes_subset(data_config, dataset_meta) -> Optional[List[int]]:
     """Return episode indices to load. episode_subset takes precedence over chunk_subset.
     episode_subset can be:
     - List of ints: [0, 1, 2, 3] for explicit indices
     - String "0-100" for range 0 to 100 inclusive
     - List [0, 100] for range 0 to 100 inclusive (2-element list = range)
+    chunk_subset can be:
+    - int: single chunk (e.g. 0 for chunk-000)
+    - List [start, end]: chunk range inclusive (e.g. [0, 99] for chunk-000 to chunk-099)
     """
     episode_subset = getattr(data_config, "episode_subset", None)
     if episode_subset is None:
@@ -86,8 +63,21 @@ def _get_episodes_subset(data_config, dataset_meta) -> Optional[List[int]]:
         return None
     chunks_size = dataset_meta.chunks_size
     total_episodes = dataset_meta.total_episodes
-    start = chunk_subset * chunks_size
-    end = min((chunk_subset + 1) * chunks_size, total_episodes)
+    # Normalize: allow int (legacy) or list [0] / [0, 99]
+    if isinstance(chunk_subset, (list, tuple)):
+        if len(chunk_subset) == 2:
+            # [0, 99] -> chunks 0 through 99 inclusive (chunk-000 to chunk-099)
+            start_chunk, end_chunk = int(chunk_subset[0]), int(chunk_subset[1])
+        elif len(chunk_subset) == 1:
+            # [0] -> single chunk
+            start_chunk = end_chunk = int(chunk_subset[0])
+        else:
+            return None
+    else:
+        # Single int (legacy)
+        start_chunk = end_chunk = int(chunk_subset)
+    start = start_chunk * chunks_size
+    end = min((end_chunk + 1) * chunks_size, total_episodes)
     return list(range(start, end))
 
 
@@ -177,11 +167,6 @@ class liberoDataset(Dataset):
             image_transforms=image_transforms,
             delta_timestamps=delta_timestamps,
         )
-        task_filter = _get_task_subset_filter(data_config, self.dataset_meta)
-        if task_filter is not None:
-            self.dataset.hf_dataset = self.dataset.hf_dataset.filter(
-                task_filter, desc="Filtering by task_subset"
-            )
         norm_stats = load_norm_stats_from_file(self.norm_stats_file)
         self.normalizer = Normalizer(
             norm_stats=norm_stats,
@@ -283,13 +268,6 @@ class RobotwinDataset(Dataset):
         if "action_is_pad" in self.dataset.hf_dataset.column_names:
             required_columns.append("action_is_pad")
         self.dataset.hf_dataset = self.dataset.hf_dataset.select_columns(required_columns)
-
-        # Filter by task_subset if specified (train selected tasks only)
-        task_filter = _get_task_subset_filter(data_config, self.dataset_meta)
-        if task_filter is not None:
-            self.dataset.hf_dataset = self.dataset.hf_dataset.filter(
-                task_filter, desc="Filtering by task_subset"
-            )
 
         norm_stats = load_norm_stats_from_file(self.norm_stats_file)
         self.normalizer = Normalizer(
@@ -431,13 +409,6 @@ class AlohaAgilexDataset(Dataset):
             required_columns.append("action_is_pad")
         self.dataset.hf_dataset = self.dataset.hf_dataset.select_columns(required_columns)
 
-        # Filter by task_subset if specified (train selected tasks only)
-        task_filter = _get_task_subset_filter(data_config, self.dataset_meta)
-        if task_filter is not None:
-            self.dataset.hf_dataset = self.dataset.hf_dataset.filter(
-                task_filter, desc="Filtering by task_subset"
-            )
-
         norm_stats = load_norm_stats_from_file(self.norm_stats_file)
         self.normalizer = Normalizer(
             norm_stats=norm_stats,
@@ -556,11 +527,6 @@ class CustomizedRobotwinDataset(Dataset):
             image_transforms=image_transforms,
             delta_timestamps=delta_timestamps,
         )
-        task_filter = _get_task_subset_filter(data_config, self.dataset_meta)
-        if task_filter is not None:
-            self.dataset.hf_dataset = self.dataset.hf_dataset.filter(
-                task_filter, desc="Filtering by task_subset"
-            )
         norm_stats = load_norm_stats_from_file(self.norm_stats_file)
         self.normalizer = Normalizer(
             norm_stats=norm_stats,

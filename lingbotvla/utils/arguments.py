@@ -240,9 +240,9 @@ class DataArguments:
         default=True,
         metadata={"help": "Whether to pin memory for dataloader."},
     )
-    chunk_subset: Optional[int] = field(
+    chunk_subset: Optional[List[int]] = field(
         default=None,
-        metadata={"help": "If set (e.g. 0), only load episodes from this chunk (chunk-000 for 0). Reduces load for debugging."},
+        metadata={"help": "If set, only load episodes from these chunks. Use [0] for single chunk, or [0, 99] for range chunk-000 to chunk-099 inclusive."},
     )
     episode_subset: Optional[List[int]] = field(
         default=None,
