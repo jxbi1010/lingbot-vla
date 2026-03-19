@@ -12,8 +12,8 @@ data:
   num_workers: 12
   norm_type: bounds_99_woclip
   norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json #
-  chunk_subset: [0,9]  # # [0] = chunk-000,[0, 99] = chunk-000 to chunk-099 inclusive, etc. (set to null for full data)
-  episode_subset: [0,9]] # inclusive e.g.[0,99]
+  chunk_subset: [0,2]  # # [0] = chunk-000,[0, 99] = chunk-000 to chunk-099 inclusive, etc. (set to null for full data)
+  episode_subset: [0,9] # inclusive e.g.[0,99]
 train:
   output_dir: /home/workspace/jianxin/output/ego_21w_finetune_01_test #
   loss_type: L1_fm
