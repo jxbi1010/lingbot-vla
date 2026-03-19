@@ -1,0 +1,37 @@
+#!/bin/bash
+
+set -x
+
+export HF_HOME="/home/ss-oss1/data/user/jiankai/Data/lerobot_test_data/lerobot_data_10k/cache"
+export HF_DATASETS_CACHE="/home/ss-oss1/data/user/jiankai/Data/lerobot_test_data/lerobot_data_10k/cache/datasets"
+# Use writable cache (arena sets HF_HOME/HF_DATASETS_CACHE; fallback for local dev)
+# export HF_HOME="/home/workspace/jianxin/cache/huggingface"
+# export HF_DATASETS_CACHE="/home/workspace/jianxin/cache/huggingface/datasets"
+
+# export USER=jianxin
+# export LOGNAME=jianxin
+
+# export WANDB_API_KEY=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
+# export WANDB_DIR="/home/workspace/jianxin/cache/wandb"
+
+# export TORCH_INDUCTOR_CACHE_DIR="/home/workspace/jianxin/cache/torch_inductor"
+# export TRITON_CACHE_DIR="/home/workspace/jianxin/cache/triton"
+
+
+export TOKENIZERS_PARALLELISM=false
+if [ -z "$CUDA_VISIBLE_DEVICES" ]; then
+  NPROC_PER_NODE=$(nvidia-smi -L | wc -l)
+else
+  # 可见 GPU 数量
+  NPROC_PER_NODE=$(echo $CUDA_VISIBLE_DEVICES | tr ',' '\n' | wc -l)
+fi
+echo "Using NPROC_PER_NODE=$NPROC_PER_NODE GPUs"
+NNODES=${NNODES:=1}
+NPROC_PER_NODE=${NPROC_PER_NODE:=$NPROC_PER_NODE}
+NODE_RANK=${NODE_RANK:=0}
+MASTER_ADDR=${MASTER_ADDR:=0.0.0.0}
+MASTER_PORT=${MASTER_PORT:=62500}
+
+
+torchrun --nnodes=$NNODES --nproc-per-node $NPROC_PER_NODE --node-rank $NODE_RANK \
+  --master-addr=$MASTER_ADDR --master-port=$MASTER_PORT $@ 2>&1 | tee log.txt

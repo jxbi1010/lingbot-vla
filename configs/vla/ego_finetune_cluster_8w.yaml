@@ -9,13 +9,13 @@ data:
   datasets_type: vla
   data_name: robotwin_example
   train_path: /home/ss-oss1/data/dataset/egocentric/training_egocentric/retarget_lerobot/lerobot_video_multiworker_test/
-  num_workers: 16
+  num_workers: 8
   norm_type: bounds_99_woclip
   norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json #
-  chunk_subset: [0,10]  # # [0] = chunk-000,[0, 99] = chunk-000 to chunk-099 inclusive, etc. (set to null for full data)
-  episode_subset: [0,10] # inclusive e.g.[0,99]
+  chunk_subset: [0,9]  # # [0] = chunk-000,[0, 99] = chunk-000 to chunk-099 inclusive, etc. (set to null for full data)
+  episode_subset: [0,9]] # inclusive e.g.[0,99]
 train:
-  output_dir: /home/ss-oss1/data/user/jxbi/lingbot/output/ego_test02 #
+  output_dir: /home/workspace/jianxin/output/ego_21w_finetune_01_test #
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
@@ -32,11 +32,11 @@ train:
   action_dim: 14
   max_action_dim: 75
   max_state_dim: 75
-  lr: 1.0e-4
+  lr: 4.0e-4
   lr_decay_style: constant
   num_train_epochs: 10
   micro_batch_size: 32
-  global_batch_size: 256
+  global_batch_size: 1024
   max_steps: 100000
   ckpt_manager: dcp
   save_steps: 10000

@@ -7,18 +7,18 @@ model:
 
 data:
   datasets_type: vla
-  data_name: robotwin #aloha_agilex
+  data_name: aloha_agilex #aloha_agilex
   # Single dataset: path to one LeRobot v2.1 folder (all tasks loaded by default)
   # Multi-task: comma-separated paths, e.g. "/path/task1,/path/task2,/path/task3"
-  train_path: /home/ss-oss1/data/user/shawks/lerobot_test_data/lerobot_video_03
-  num_workers: 20
+  train_path: /home/ss-oss1/data/user/shawks/DATA/test_final/agilex-real-world-data/disk-1/Arrange_the_number_7
+  num_workers: 16
   norm_type: bounds_99_woclip
   norm_stats_file: assets/norm_stats/ego_pretrain_10k_norm.json #
   chunk_subset: null  # Only load chunk-000 to reduce dataset load (set to null for full data)
-  episode_subset: null # inclusive e.g.[1,99]
+  episode_subset: [1,10] # inclusive e.g.[1,99]
   # task_subset: null  # Select tasks: [0,1,2] by index, or ["task_name_1","task_name_2"] by name
 train:
-  output_dir:  /home/ss-oss1/data/user/jxbi/lingbot/output/test18 #
+  output_dir:  /home/ss-oss1/data/user/jxbi/lingbot/output/aloha_test18 #
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
