@@ -31,7 +31,7 @@ from lingbotvla.optim import build_lr_scheduler, build_optimizer
 from lingbotvla.utils import helper
 from lingbotvla.utils.ema import ema_update
 from lingbotvla.utils.arguments import DataArguments, ModelArguments, TrainingArguments, parse_args, save_args
-from lingbotvla.utils.dist_utils import all_reduce
+from lingbotvla.utils.dist_utils import all_reduce, main_process_first
 
 from lingbotvla.models.vla.vision_models.module_utils import build_depth_model, get_depth_target, log_depth
 
@@ -327,32 +327,35 @@ def main():
         if args.data.datasets_type == 'vla':
             logger.info_rank0("Start building VLA dataset")
             args.data.chunk_size = args.train.chunk_size
-            if args.data.data_name == 'libero':
-                train_dataset = liberoDataset(repo_id=args.data.train_path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None,use_depth_align=use_depth_align)
-            elif 'robotwin' in args.data.data_name.lower():
-                # Support comma-separated train_path for multi-task training (multiple LeRobot datasets)
-                train_paths = [p.strip() for p in args.data.train_path.split(",") if p.strip()]
-                if len(train_paths) == 1:
-                    train_dataset = RobotwinDataset(repo_id=train_paths[0], config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
-                else:
-                    datasets = [
-                        RobotwinDataset(repo_id=path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
-                        for path in train_paths
-                    ]
-                    train_dataset = ConcatDataset(datasets)
-                    logger.info_rank0(f"Loaded {len(train_paths)} task datasets: {train_paths}")
-            elif args.data.data_name == 'aloha_agilex':
-                logger.info_rank0("Start building AlohaAgilex dataset")
-                train_paths = [p.strip() for p in args.data.train_path.split(",") if p.strip()]
-                if len(train_paths) == 1:
-                    train_dataset = AlohaAgilexDataset(repo_id=train_paths[0], config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
-                else:
-                    datasets = [
-                        AlohaAgilexDataset(repo_id=path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
-                        for path in train_paths
-                    ]
-                    train_dataset = ConcatDataset(datasets)
-                    logger.info_rank0(f"Loaded {len(train_paths)} task datasets: {train_paths}")
+            # Only rank 0 builds dataset first to populate HF/LeRobot cache; other ranks wait to avoid
+            # concurrent cache writes and "Not enough disk space" on multi-node clusters.
+            with main_process_first(local_only=False):
+                if args.data.data_name == 'libero':
+                    train_dataset = liberoDataset(repo_id=args.data.train_path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None,use_depth_align=use_depth_align)
+                elif 'robotwin' in args.data.data_name.lower():
+                    # Support comma-separated train_path for multi-task training (multiple LeRobot datasets)
+                    train_paths = [p.strip() for p in args.data.train_path.split(",") if p.strip()]
+                    if len(train_paths) == 1:
+                        train_dataset = RobotwinDataset(repo_id=train_paths[0], config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
+                    else:
+                        datasets = [
+                            RobotwinDataset(repo_id=path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
+                            for path in train_paths
+                        ]
+                        train_dataset = ConcatDataset(datasets)
+                        logger.info_rank0(f"Loaded {len(train_paths)} task datasets: {train_paths}")
+                elif args.data.data_name == 'aloha_agilex':
+                    logger.info_rank0("Start building AlohaAgilex dataset")
+                    train_paths = [p.strip() for p in args.data.train_path.split(",") if p.strip()]
+                    if len(train_paths) == 1:
+                        train_dataset = AlohaAgilexDataset(repo_id=train_paths[0], config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
+                    else:
+                        datasets = [
+                            AlohaAgilexDataset(repo_id=path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
+                            for path in train_paths
+                        ]
+                        train_dataset = ConcatDataset(datasets)
+                        logger.info_rank0(f"Loaded {len(train_paths)} task datasets: {train_paths}")
             args.train.compute_train_steps(args.data.max_seq_len, args.data.train_size, len(train_dataset))
         
         train_dataloader = build_dataloader(
