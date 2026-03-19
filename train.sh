@@ -2,11 +2,15 @@
 
 set -x
 
-# export HF_HOME="/home/ss-oss1/data/user/jiankai/Data/lerobot_test_data/lerobot_data_10k/cache"
-# export HF_DATASETS_CACHE="/home/ss-oss1/data/user/jiankai/Data/lerobot_test_data/lerobot_data_10k/cache/datasets"
-# Use writable cache (arena sets HF_HOME/HF_DATASETS_CACHE; fallback for local dev)
-export HF_HOME="/home/workspace/jianxin/cache/huggingface"
-export HF_DATASETS_CACHE="/home/workspace/jianxin/cache/huggingface/datasets"
+# Get the hostname of the current node
+NODE_NAME=$(hostname)
+BASE_CACHE="/home/workspace/jianxin/cache/${NODE_NAME}"
+# Create the directories to prevent "Directory not found" errors
+mkdir -p "${BASE_CACHE}/huggingface/datasets" "${BASE_CACHE}/torch_inductor" "${BASE_CACHE}/triton"
+
+# Use the node-specific base cache
+export HF_HOME="${BASE_CACHE}/huggingface"
+export HF_DATASETS_CACHE="${BASE_CACHE}/huggingface/datasets"
 
 export USER=jianxin
 export LOGNAME=jianxin
@@ -14,11 +18,11 @@ export LOGNAME=jianxin
 export WANDB_API_KEY=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
 export WANDB_DIR="/home/workspace/jianxin/cache/wandb"
 
-export TORCH_INDUCTOR_CACHE_DIR="/home/workspace/jianxin/cache/torch_inductor"
-export TRITON_CACHE_DIR="/home/workspace/jianxin/cache/triton"
-
+export TORCH_INDUCTOR_CACHE_DIR="${BASE_CACHE}/torch_inductor"
+export TRITON_CACHE_DIR="${BASE_CACHE}/triton"
 
 export TOKENIZERS_PARALLELISM=false
+
 if [ -z "$CUDA_VISIBLE_DEVICES" ]; then
   NPROC_PER_NODE=$(nvidia-smi -L | wc -l)
 else
