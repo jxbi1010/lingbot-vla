@@ -2,7 +2,7 @@
 
 set -x
 
-BASE_CACHE="/home/ss-oss1/checkpoints/jianxin/cache"
+BASE_CACHE="${BASE_CACHE:-/checkpoints/jianxin/cache}"
 mkdir -p "${BASE_CACHE}/datasets" "${BASE_CACHE}/torch_inductor" "${BASE_CACHE}/triton" "${BASE_CACHE}/wandb"
 
 export HF_HOME="${BASE_CACHE}"
