@@ -15,7 +15,7 @@ data:
   chunk_subset: null  # # [0] = chunk-000,[0, 99] = chunk-000 to chunk-099 inclusive, etc. (set to null for full data)
   episode_subset: null # inclusive e.g.[0,99]
 train:
-  output_dir: /home/workspace/jianxin/output/ego_21w_finetune_01 #
+  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_test_local #
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
