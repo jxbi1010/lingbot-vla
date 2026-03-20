@@ -7,7 +7,7 @@ model:
 
 data:
   datasets_type: vla
-  data_name: robotwin #aloha_agilex #robotwin
+  data_name: aloha_agilex #aloha_agilex #robotwin
   # Single dataset: path to one LeRobot v2.1 folder (all tasks loaded by default)
   # Multi-task: comma-separated paths, e.g. "/path/task1,/path/task2,/path/task3"
   train_path: /home/ss-oss1/data/user/shawks/lerobot_test_data/lerobot_video_03
@@ -18,7 +18,7 @@ data:
   episode_subset: null # inclusive e.g.[1,99]
   # task_subset: null  # Select tasks: [0,1,2] by index, or ["task_name_1","task_name_2"] by name
 train:
-  output_dir:  /home/workspace/jianxin/output/test18 #
+  output_dir:  /checkpoints/jianxin/output/test18 #
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
@@ -39,7 +39,7 @@ train:
   lr_decay_style: constant
   num_train_epochs: 10
   micro_batch_size: 32
-  global_batch_size: 256
+  global_batch_size: 1024
   max_steps: 100000
   ckpt_manager: dcp
   save_steps: 10000
