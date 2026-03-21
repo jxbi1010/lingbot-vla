@@ -9,7 +9,7 @@ data:
   datasets_type: vla
   data_name: robotwin_example
   train_path: /home/ss-oss1/data/dataset/egocentric/training_egocentric/retarget_lerobot/lerobot_video_multiworker_test/
-  num_workers: 2
+  num_workers: 4
   norm_type: bounds_99_woclip
   norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json #
   chunk_subset: [0,9]  # # [0] = chunk-000,[0, 99] = chunk-000 to chunk-099 inclusive, etc. (set to null for full data)
@@ -35,8 +35,8 @@ train:
   lr: 4.0e-4
   lr_decay_style: constant
   num_train_epochs: 10
-  micro_batch_size: 32
-  global_batch_size: 1024
+  micro_batch_size: 16
+  global_batch_size: 512
   max_steps: 100000
   ckpt_manager: dcp
   save_steps: 10000
