@@ -1,4 +1,5 @@
 import json
+import pickle
 from copy import deepcopy
 import os
 import re
@@ -46,6 +47,107 @@ logger = helper.create_logger(__name__)
 #     from aistudio_tracking import training_tracking as wandb
 # except Exception as e:
 #     logger.info_rank0(f"Failed to import aistudio_tracking: {repr(e)}.")
+
+def _wait_for_vla_pickle_cache(cache_path: str, global_rank: int) -> None:
+    """Non-zero ranks poll until rank 0 writes the pickle (avoid long NCCL barrier during rank-0 build)."""
+    t0 = time.time()
+    last_log = t0
+    logger.info(f"rank {global_rank} waiting for pickled dataset file {cache_path}...")
+    while not os.path.exists(cache_path):
+        time.sleep(5.0)
+        now = time.time()
+        if now - last_log >= 60.0:
+            logger.info(
+                f"rank {global_rank} still waiting for pickle ({int(now - t0)}s elapsed): {cache_path}"
+            )
+            last_log = now
+    logger.info(f"rank {global_rank} found pickle after {time.time() - t0:.1f}s")
+
+
+def _pickle_dump_train_dataset(train_dataset: Any, cache_path: str) -> None:
+    parent = os.path.dirname(cache_path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+    tmp_path = cache_path + ".tmp"
+    with open(tmp_path, "wb") as f:
+        pickle.dump(train_dataset, f, protocol=pickle.HIGHEST_PROTOCOL)
+    os.replace(tmp_path, cache_path)
+
+
+def _build_vla_train_dataset(args: "Arguments", model, processor, use_depth_align: bool):
+    """Build LeRobot-backed VLA dataset(s). Each rank must call this once to own a Dataset in memory."""
+    args.data.chunk_size = args.train.chunk_size
+    if args.data.data_name == "libero":
+        train_dataset = liberoDataset(
+            repo_id=args.data.train_path,
+            config=model.config,
+            tokenizer=processor.tokenizer,
+            data_config=args.data,
+            image_processor=processor.image_processor if "qwen" in args.model.tokenizer_path.lower() else None,
+            use_depth_align=use_depth_align,
+            verify_timestamps_sync=args.data.verify_timestamps_sync,
+        )
+    elif "robotwin" in args.data.data_name.lower():
+        train_paths = [p.strip() for p in args.data.train_path.split(",") if p.strip()]
+        if len(train_paths) == 1:
+            train_dataset = RobotwinDataset(
+                repo_id=train_paths[0],
+                config=model.config,
+                tokenizer=processor.tokenizer,
+                data_config=args.data,
+                image_processor=processor.image_processor if "qwen" in args.model.tokenizer_path.lower() else None,
+                use_depth_align=use_depth_align,
+                verify_timestamps_sync=args.data.verify_timestamps_sync,
+            )
+        else:
+            datasets = [
+                RobotwinDataset(
+                    repo_id=path,
+                    config=model.config,
+                    tokenizer=processor.tokenizer,
+                    data_config=args.data,
+                    image_processor=processor.image_processor if "qwen" in args.model.tokenizer_path.lower() else None,
+                    use_depth_align=use_depth_align,
+                    verify_timestamps_sync=args.data.verify_timestamps_sync,
+                )
+                for path in train_paths
+            ]
+            train_dataset = ConcatDataset(datasets)
+            logger.info_rank0(f"Loaded {len(train_paths)} task datasets: {train_paths}")
+    elif args.data.data_name == "aloha_agilex":
+        logger.info_rank0("Start building AlohaAgilex dataset")
+        train_paths = [p.strip() for p in args.data.train_path.split(",") if p.strip()]
+        if len(train_paths) == 1:
+            train_dataset = AlohaAgilexDataset(
+                repo_id=train_paths[0],
+                config=model.config,
+                tokenizer=processor.tokenizer,
+                data_config=args.data,
+                image_processor=processor.image_processor if "qwen" in args.model.tokenizer_path.lower() else None,
+                use_depth_align=use_depth_align,
+                verify_timestamps_sync=args.data.verify_timestamps_sync,
+            )
+        else:
+            datasets = [
+                AlohaAgilexDataset(
+                    repo_id=path,
+                    config=model.config,
+                    tokenizer=processor.tokenizer,
+                    data_config=args.data,
+                    image_processor=processor.image_processor if "qwen" in args.model.tokenizer_path.lower() else None,
+                    use_depth_align=use_depth_align,
+                    verify_timestamps_sync=args.data.verify_timestamps_sync,
+                )
+                for path in train_paths
+            ]
+            train_dataset = ConcatDataset(datasets)
+            logger.info_rank0(f"Loaded {len(train_paths)} task datasets: {train_paths}")
+    else:
+        raise ValueError(f"Unsupported data.data_name for vla: {args.data.data_name!r}")
+
+    args.train.compute_train_steps(args.data.max_seq_len, args.data.train_size, len(train_dataset))
+    return train_dataset
+
 
 def get_param_groups(model: "torch.nn.Module", default_lr: float, vit_lr: float):
     vit_params, other_params = [], []
@@ -194,6 +296,18 @@ class MyDataArguments(DataArguments):
             "help": "If False, LeRobotDataset skips full timestamp column load and sync validation at init (requires lerobot with verify_timestamps_sync)."
         },
     )
+    dataset_init_main_process_first: bool = field(
+        default=True,
+        metadata={
+            "help": "If True and world_size>1, rank 0 builds the VLA dataset and pickles it; other ranks unpickle (no second LeRobot build). Non-zero ranks poll for the file, then all ranks use a short barrier."
+        },
+    )
+    dataset_pickle_cache_path: str = field(
+        default="/dev/shm/lerobot_vla_dataset_cache.pkl",
+        metadata={
+            "help": "Shared path for pickling the built train dataset (rank 0 writes, others read). Use a path on shared storage for multi-node; /dev/shm is single-node only."
+        },
+    )
     source_name: str = field(
         default=None,
         metadata={"help": "Source name of dataset."},
@@ -333,34 +447,36 @@ def main():
     if args.data.dataloader_type == "native":
         if args.data.datasets_type == 'vla':
             logger.info_rank0("Start building VLA dataset")
-            args.data.chunk_size = args.train.chunk_size
-            if args.data.data_name == 'libero':
-                train_dataset = liberoDataset(repo_id=args.data.train_path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align, verify_timestamps_sync=args.data.verify_timestamps_sync)
-            elif 'robotwin' in args.data.data_name.lower():
-                # Support comma-separated train_path for multi-task training (multiple LeRobot datasets)
-                train_paths = [p.strip() for p in args.data.train_path.split(",") if p.strip()]
-                if len(train_paths) == 1:
-                    train_dataset = RobotwinDataset(repo_id=train_paths[0], config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align, verify_timestamps_sync=args.data.verify_timestamps_sync)
+            mfirst = args.data.dataset_init_main_process_first and args.train.world_size > 1
+            if mfirst:
+                cache_path = args.data.dataset_pickle_cache_path
+                cache_dir = os.path.dirname(cache_path)
+                if cache_dir:
+                    os.makedirs(cache_dir, exist_ok=True)
+                if args.train.global_rank == 0:
+                    try:
+                        os.remove(cache_path)
+                    except OSError:
+                        pass
+                    logger.info_rank0(
+                        f"Building VLA dataset on rank 0; will pickle to {cache_path} (other ranks unpickle)."
+                    )
+                    train_dataset = _build_vla_train_dataset(args, model, processor, use_depth_align)
+                    _pickle_dump_train_dataset(train_dataset, cache_path)
+                    logger.info_rank0(f"Pickled train dataset to {cache_path}")
                 else:
-                    datasets = [
-                        RobotwinDataset(repo_id=path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align, verify_timestamps_sync=args.data.verify_timestamps_sync)
-                        for path in train_paths
-                    ]
-                    train_dataset = ConcatDataset(datasets)
-                    logger.info_rank0(f"Loaded {len(train_paths)} task datasets: {train_paths}")
-            elif args.data.data_name == 'aloha_agilex':
-                logger.info_rank0("Start building AlohaAgilex dataset")
-                train_paths = [p.strip() for p in args.data.train_path.split(",") if p.strip()]
-                if len(train_paths) == 1:
-                    train_dataset = AlohaAgilexDataset(repo_id=train_paths[0], config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align, verify_timestamps_sync=args.data.verify_timestamps_sync)
-                else:
-                    datasets = [
-                        AlohaAgilexDataset(repo_id=path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align, verify_timestamps_sync=args.data.verify_timestamps_sync)
-                        for path in train_paths
-                    ]
-                    train_dataset = ConcatDataset(datasets)
-                    logger.info_rank0(f"Loaded {len(train_paths)} task datasets: {train_paths}")
-            args.train.compute_train_steps(args.data.max_seq_len, args.data.train_size, len(train_dataset))
+                    _wait_for_vla_pickle_cache(cache_path, args.train.global_rank)
+                dist.barrier()
+                if args.train.global_rank != 0:
+                    with open(cache_path, "rb") as f:
+                        train_dataset = pickle.load(f)
+                    logger.info(f"rank {args.train.global_rank} unpickled train dataset from {cache_path}")
+                    # Same as _build_vla_train_dataset tail: unpickled path skips compute_train_steps otherwise.
+                    args.train.compute_train_steps(
+                        args.data.max_seq_len, args.data.train_size, len(train_dataset)
+                    )
+            else:
+                train_dataset = _build_vla_train_dataset(args, model, processor, use_depth_align)
         
         train_dataloader = build_dataloader(
             dataset=train_dataset,

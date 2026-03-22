@@ -15,9 +15,11 @@ data:
   chunk_subset: null  # # [0] = chunk-000,[0, 99] = chunk-000 to chunk-099 inclusive, etc. (set to null for full data)
   episode_subset: null # inclusive e.g.[0,99]
   verify_timestamps_sync: false
-  
+  # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
+  dataset_init_main_process_first: true
+
 train:
-  output_dir: /checkpoints/jianxin/output/ego_21w_trail_00 #
+  output_dir: /checkpoints/jianxin/output/ego_21w_trail_000 #
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
@@ -38,10 +40,10 @@ train:
   lr_decay_style: constant
   num_train_epochs: 10
   micro_batch_size: 32
-  global_batch_size: 512
+  global_batch_size: 1024
   max_steps: 200000
   ckpt_manager: dcp
-  save_steps: 10000
+  save_steps: 2000
   save_epochs: 1
   enable_fp32: true
   enable_resume: true
