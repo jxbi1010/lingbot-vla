@@ -191,7 +191,7 @@ class MyDataArguments(DataArguments):
     verify_timestamps_sync: bool = field(
         default=True,
         metadata={
-            "help": "If False, skip LeRobotDataset init timestamp sync check (lingbot-vla patches lerobot in-process)."
+            "help": "If False, LeRobotDataset skips full timestamp column load and sync validation at init (requires lerobot with verify_timestamps_sync)."
         },
     )
     source_name: str = field(
