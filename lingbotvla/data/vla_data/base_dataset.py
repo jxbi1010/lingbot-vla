@@ -14,6 +14,8 @@
 
 
 import os
+import threading
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Callable, Dict, List, Literal, Optional
 import numpy as np
@@ -24,6 +26,7 @@ from torch.utils.data import Dataset, IterableDataset
 from lerobot.common.policies.pi0.configuration_pi0 import PI0Config
 from torchvision.transforms.v2 import Resize
 from transformers import AutoTokenizer, AutoImageProcessor
+import lerobot.common.datasets.lerobot_dataset as _lerobot_ds_mod
 from lerobot.common.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatasetMetadata
 import json
 import yaml
@@ -31,6 +34,23 @@ from PIL import Image
 from .transform import Normalizer, extract_semantic_motion, load_norm_stats_from_file, prepare_action, prepare_images, prepare_language, prepare_state
 
 from ...utils import logging
+
+_LEROBOT_TS_PATCH_LOCK = threading.Lock()
+
+
+@contextmanager
+def _optional_skip_lerobot_timestamps_sync(verify_timestamps_sync: bool):
+    """When False, temporarily no-op lerobot's check_timestamps_sync during LeRobotDataset construction."""
+    if verify_timestamps_sync:
+        yield
+        return
+    with _LEROBOT_TS_PATCH_LOCK:
+        orig = _lerobot_ds_mod.check_timestamps_sync
+        _lerobot_ds_mod.check_timestamps_sync = lambda *a, **k: None
+        try:
+            yield
+        finally:
+            _lerobot_ds_mod.check_timestamps_sync = orig
 
 
 def _get_episodes_subset(data_config, dataset_meta) -> Optional[List[int]]:
@@ -91,6 +111,7 @@ class VlaDataset(Dataset):
         image_processor=None,
         use_depth_align=False,
         action_name="action",
+        verify_timestamps_sync: bool = True,
     ):
         self.image_processor = image_processor
         # [i / 30 for i in range(50)] represents action chunks in 50 steps at 30 FPS.
@@ -101,10 +122,11 @@ class VlaDataset(Dataset):
         delta_timestamps = {
             action_name: [t / self.dataset_meta.fps for t in range(50)],
         }
-        self.dataset = LeRobotDataset(
-            repo_id=repo_id,
-            delta_timestamps=delta_timestamps,
-        )
+        with _optional_skip_lerobot_timestamps_sync(verify_timestamps_sync):
+            self.dataset = LeRobotDataset(
+                repo_id=repo_id,
+                delta_timestamps=delta_timestamps,
+            )
         self.action_name = action_name
 
     def __len__(self):
@@ -148,6 +170,7 @@ class liberoDataset(Dataset):
         data_config=None,
         image_processor=None,
         use_depth_align=False,
+        verify_timestamps_sync: bool = True,
     ):
         image_transforms = Resize((data_config.img_size, data_config.img_size))
         self.image_processor = image_processor
@@ -161,12 +184,13 @@ class liberoDataset(Dataset):
             "actions": [t / self.dataset_meta.fps for t in range(50)],
         }
         episodes = _get_episodes_subset(data_config, self.dataset_meta)
-        self.dataset = LeRobotDataset(
-            repo_id=repo_id,
-            episodes=episodes,
-            image_transforms=image_transforms,
-            delta_timestamps=delta_timestamps,
-        )
+        with _optional_skip_lerobot_timestamps_sync(verify_timestamps_sync):
+            self.dataset = LeRobotDataset(
+                repo_id=repo_id,
+                episodes=episodes,
+                image_transforms=image_transforms,
+                delta_timestamps=delta_timestamps,
+            )
         norm_stats = load_norm_stats_from_file(self.norm_stats_file)
         self.normalizer = Normalizer(
             norm_stats=norm_stats,
@@ -229,6 +253,7 @@ class RobotwinDataset(Dataset):
         data_config=None,
         image_processor=None,
         use_depth_align=False,
+        verify_timestamps_sync: bool = True,
     ):
         image_transforms = Resize((data_config.img_size, data_config.img_size))
         self.image_processor = image_processor
@@ -247,13 +272,14 @@ class RobotwinDataset(Dataset):
         }
         episodes = _get_episodes_subset(data_config, self.dataset_meta)
         # root must be the full path to the dataset folder (containing meta/, data/)
-        self.dataset = LeRobotDataset(
-            repo_id=local_repo_id,
-            root=str(dataset_path),
-            episodes=episodes,
-            image_transforms=image_transforms,
-            delta_timestamps=delta_timestamps,
-        )
+        with _optional_skip_lerobot_timestamps_sync(verify_timestamps_sync):
+            self.dataset = LeRobotDataset(
+                repo_id=local_repo_id,
+                root=str(dataset_path),
+                episodes=episodes,
+                image_transforms=image_transforms,
+                delta_timestamps=delta_timestamps,
+            )
 
         required_columns = [
         "observation.state", 
@@ -369,6 +395,7 @@ class AlohaAgilexDataset(Dataset):
         data_config=None,
         image_processor=None,
         use_depth_align=False,
+        verify_timestamps_sync: bool = True,
     ):
         image_transforms = Resize((data_config.img_size, data_config.img_size))
         self.image_processor = image_processor
@@ -387,13 +414,14 @@ class AlohaAgilexDataset(Dataset):
         }
         episodes = _get_episodes_subset(data_config, self.dataset_meta)
         # root must be the full path to the dataset folder (containing meta/, data/)
-        self.dataset = LeRobotDataset(
-            repo_id=local_repo_id,
-            root=str(dataset_path),
-            episodes=episodes,
-            image_transforms=image_transforms,
-            delta_timestamps=delta_timestamps,
-        )
+        with _optional_skip_lerobot_timestamps_sync(verify_timestamps_sync):
+            self.dataset = LeRobotDataset(
+                repo_id=local_repo_id,
+                root=str(dataset_path),
+                episodes=episodes,
+                image_transforms=image_transforms,
+                delta_timestamps=delta_timestamps,
+            )
 
         required_columns = [
         "observation.state", 
@@ -508,6 +536,7 @@ class CustomizedRobotwinDataset(Dataset):
         data_config=None,
         image_processor=None,
         use_depth_align=False,
+        verify_timestamps_sync: bool = True,
     ):
         image_transforms = Resize((data_config.img_size, data_config.img_size))
         self.image_processor = image_processor
@@ -521,12 +550,13 @@ class CustomizedRobotwinDataset(Dataset):
             "action": [t / self.dataset_meta.fps for t in range(50)],
         }
         episodes = _get_episodes_subset(data_config, self.dataset_meta)
-        self.dataset = LeRobotDataset(
-            repo_id=repo_id,
-            episodes=episodes,
-            image_transforms=image_transforms,
-            delta_timestamps=delta_timestamps,
-        )
+        with _optional_skip_lerobot_timestamps_sync(verify_timestamps_sync):
+            self.dataset = LeRobotDataset(
+                repo_id=repo_id,
+                episodes=episodes,
+                image_transforms=image_transforms,
+                delta_timestamps=delta_timestamps,
+            )
         norm_stats = load_norm_stats_from_file(self.norm_stats_file)
         self.normalizer = Normalizer(
             norm_stats=norm_stats,

@@ -14,6 +14,8 @@ data:
   norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json #
   chunk_subset: null  # # [0] = chunk-000,[0, 99] = chunk-000 to chunk-099 inclusive, etc. (set to null for full data)
   episode_subset: null # inclusive e.g.[0,99]
+  verify_timestamps_sync: false
+  
 train:
   output_dir: /checkpoints/jianxin/output/ego_21w_trail_00 #
   loss_type: L1_fm

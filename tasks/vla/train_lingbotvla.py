@@ -185,8 +185,15 @@ class MyTrainingArguments(TrainingArguments):
         metadata={"help": "Name of the embodiment type."},
     )
 
+
 @dataclass
 class MyDataArguments(DataArguments):
+    verify_timestamps_sync: bool = field(
+        default=True,
+        metadata={
+            "help": "If False, skip LeRobotDataset init timestamp sync check (lingbot-vla patches lerobot in-process)."
+        },
+    )
     source_name: str = field(
         default=None,
         metadata={"help": "Source name of dataset."},
@@ -328,15 +335,15 @@ def main():
             logger.info_rank0("Start building VLA dataset")
             args.data.chunk_size = args.train.chunk_size
             if args.data.data_name == 'libero':
-                train_dataset = liberoDataset(repo_id=args.data.train_path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None,use_depth_align=use_depth_align)
+                train_dataset = liberoDataset(repo_id=args.data.train_path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align, verify_timestamps_sync=args.data.verify_timestamps_sync)
             elif 'robotwin' in args.data.data_name.lower():
                 # Support comma-separated train_path for multi-task training (multiple LeRobot datasets)
                 train_paths = [p.strip() for p in args.data.train_path.split(",") if p.strip()]
                 if len(train_paths) == 1:
-                    train_dataset = RobotwinDataset(repo_id=train_paths[0], config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
+                    train_dataset = RobotwinDataset(repo_id=train_paths[0], config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align, verify_timestamps_sync=args.data.verify_timestamps_sync)
                 else:
                     datasets = [
-                        RobotwinDataset(repo_id=path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
+                        RobotwinDataset(repo_id=path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align, verify_timestamps_sync=args.data.verify_timestamps_sync)
                         for path in train_paths
                     ]
                     train_dataset = ConcatDataset(datasets)
@@ -345,10 +352,10 @@ def main():
                 logger.info_rank0("Start building AlohaAgilex dataset")
                 train_paths = [p.strip() for p in args.data.train_path.split(",") if p.strip()]
                 if len(train_paths) == 1:
-                    train_dataset = AlohaAgilexDataset(repo_id=train_paths[0], config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
+                    train_dataset = AlohaAgilexDataset(repo_id=train_paths[0], config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align, verify_timestamps_sync=args.data.verify_timestamps_sync)
                 else:
                     datasets = [
-                        AlohaAgilexDataset(repo_id=path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align)
+                        AlohaAgilexDataset(repo_id=path, config=model.config, tokenizer=processor.tokenizer, data_config=args.data, image_processor=processor.image_processor if 'qwen' in args.model.tokenizer_path.lower() else None, use_depth_align=use_depth_align, verify_timestamps_sync=args.data.verify_timestamps_sync)
                         for path in train_paths
                     ]
                     train_dataset = ConcatDataset(datasets)
