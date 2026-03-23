@@ -15,22 +15,45 @@
 
 import os
 from pathlib import Path
-from typing import Callable, Dict, List, Literal, Optional
+from typing import Callable, Dict, List, Literal, Optional, Union
+
 import numpy as np
 import torch
 from datasets import load_dataset
 from datasets.distributed import split_dataset_by_node
 from torch.utils.data import Dataset, IterableDataset
-from lerobot.common.policies.pi0.configuration_pi0 import PI0Config
 from torchvision.transforms.v2 import Resize
 from transformers import AutoTokenizer, AutoImageProcessor
-from lerobot.common.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatasetMetadata
+
+from lerobot.datasets.dataset_metadata import LeRobotDatasetMetadata
+from lerobot.datasets.lerobot_dataset import LeRobotDataset
 import json
 import yaml
 from PIL import Image
 from .transform import Normalizer, extract_semantic_motion, load_norm_stats_from_file, prepare_action, prepare_images, prepare_language, prepare_state
 
 from ...utils import logging
+
+
+def _default_pi0_config_cls():
+    """Lazy import: `lerobot.policies` __init__ pulls heavy deps (e.g. Groot → transformers)."""
+    from lerobot.policies.pi0.configuration_pi0 import PI0Config
+
+    return PI0Config
+
+
+def _lerobot_tolerance_s(verify_timestamps_sync: bool) -> float:
+    """LeRobot v3 has no verify_timestamps_sync; use tolerance_s for delta-timestamp checks."""
+    return 1e-4 if verify_timestamps_sync else float("inf")
+
+
+def _task_label_from_index(meta: LeRobotDatasetMetadata, task_index: Union[int, torch.Tensor]) -> str:
+    """Resolve task string from task_index (v3 stores tasks as a pandas DataFrame indexed by name)."""
+    idx = int(task_index.item() if isinstance(task_index, torch.Tensor) else task_index)
+    tasks = meta.tasks
+    if hasattr(tasks, "iloc"):
+        return str(tasks.iloc[idx].name)
+    return str(tasks[idx])
 
 
 def _get_episodes_subset(data_config, dataset_meta) -> Optional[List[int]]:
@@ -85,7 +108,7 @@ class VlaDataset(Dataset):
     def __init__(
         self,
         repo_id="path2dataset",
-        config=PI0Config,
+        config=None,
         tokenizer=AutoTokenizer,
         data_config=None,
         image_processor=None,
@@ -93,6 +116,8 @@ class VlaDataset(Dataset):
         action_name="action",
         verify_timestamps_sync: bool = True,
     ):
+        if config is None:
+            config = _default_pi0_config_cls()
         self.image_processor = image_processor
         # [i / 30 for i in range(50)] represents action chunks in 50 steps at 30 FPS.
         # The timestamps are set to 0 for the images and state, as we only use current obs.
@@ -105,7 +130,7 @@ class VlaDataset(Dataset):
         self.dataset = LeRobotDataset(
             repo_id=repo_id,
             delta_timestamps=delta_timestamps,
-            verify_timestamps_sync=verify_timestamps_sync,
+            tolerance_s=_lerobot_tolerance_s(verify_timestamps_sync),
         )
         self.action_name = action_name
 
@@ -114,8 +139,8 @@ class VlaDataset(Dataset):
 
     def getdata(self, idx):
         item = self.dataset[idx]
-        task = self.dataset_meta.tasks[int(item['task_index'])]
-        assert task == item['task']
+        task = _task_label_from_index(self.dataset_meta, item["task_index"])
+        assert task == item["task"]
         return item
 
     def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
@@ -145,13 +170,15 @@ class liberoDataset(Dataset):
     def __init__(
         self,
         repo_id="libero",
-        config=PI0Config,
+        config=None,
         tokenizer=AutoTokenizer,
         data_config=None,
         image_processor=None,
         use_depth_align=False,
         verify_timestamps_sync: bool = True,
     ):
+        if config is None:
+            config = _default_pi0_config_cls()
         image_transforms = Resize((data_config.img_size, data_config.img_size))
         self.image_processor = image_processor
         # [i / 30 for i in range(50)] represents action chunks in 50 steps at 30 FPS.
@@ -169,7 +196,7 @@ class liberoDataset(Dataset):
             episodes=episodes,
             image_transforms=image_transforms,
             delta_timestamps=delta_timestamps,
-            verify_timestamps_sync=verify_timestamps_sync,
+            tolerance_s=_lerobot_tolerance_s(verify_timestamps_sync),
         )
         norm_stats = load_norm_stats_from_file(self.norm_stats_file)
         self.normalizer = Normalizer(
@@ -190,8 +217,8 @@ class liberoDataset(Dataset):
 
     def __getitem__(self, idx):
         item = self.dataset[idx]
-        task = self.dataset_meta.tasks[int(item['task_index'])]
-        assert task == item['task']
+        task = _task_label_from_index(self.dataset_meta, item["task_index"])
+        assert task == item["task"]
 
         normalized_item = self.normalizer.normalize(item)
         base_image = (normalized_item["image"] * 255).to(torch.uint8)
@@ -228,13 +255,15 @@ class RobotwinDataset(Dataset):
     def __init__(
         self,
         repo_id="robotwin",
-        config=PI0Config,
+        config=None,
         tokenizer=AutoTokenizer,
         data_config=None,
         image_processor=None,
         use_depth_align=False,
         verify_timestamps_sync: bool = True,
     ):
+        if config is None:
+            config = _default_pi0_config_cls()
         image_transforms = Resize((data_config.img_size, data_config.img_size))
         self.image_processor = image_processor
         # [i / 30 for i in range(50)] represents action chunks in 50 steps at 30 FPS.
@@ -258,22 +287,22 @@ class RobotwinDataset(Dataset):
             episodes=episodes,
             image_transforms=image_transforms,
             delta_timestamps=delta_timestamps,
-            verify_timestamps_sync=verify_timestamps_sync,
+            tolerance_s=_lerobot_tolerance_s(verify_timestamps_sync),
         )
 
-        required_columns = [
-        "observation.state", 
-        "action", 
-        "episode_index", 
-        "frame_index", 
-        "task_index", 
-        "timestamp", 
-        "index"
-        ]
+        # required_columns = [
+        # "observation.state", 
+        # "action", 
+        # "episode_index", 
+        # "frame_index", 
+        # "task_index", 
+        # "timestamp", 
+        # "index"
+        # ]
 
-        if "action_is_pad" in self.dataset.hf_dataset.column_names:
-            required_columns.append("action_is_pad")
-        self.dataset.hf_dataset = self.dataset.hf_dataset.select_columns(required_columns)
+        # if "action_is_pad" in self.dataset.hf_dataset.column_names:
+        #     required_columns.append("action_is_pad")
+        # self.dataset.hf_dataset = self.dataset.hf_dataset.select_columns(required_columns)
 
         norm_stats = load_norm_stats_from_file(self.norm_stats_file)
         self.normalizer = Normalizer(
@@ -295,8 +324,8 @@ class RobotwinDataset(Dataset):
 
     def getdata(self, idx):
         item = self.dataset[idx]
-        task = self.dataset_meta.tasks[int(item['task_index'])]
-        assert task == item['task']
+        task = _task_label_from_index(self.dataset_meta, item["task_index"])
+        assert task == item["task"]
         
         normalized_item = self.normalizer.normalize(item)
         # Fallback: use black image when wrist cameras are missing (e.g. video decode failed, num_workers>0)
@@ -312,8 +341,7 @@ class RobotwinDataset(Dataset):
             else torch.zeros_like(base_image)
         )
 
-        task_index = int(item['task_index'])    
-        task_label = self.dataset_meta.tasks[task_index]
+        task_label = _task_label_from_index(self.dataset_meta, item["task_index"])
         prompt = [extract_semantic_motion(task_label)]
 
         batch_dict =  {
@@ -370,13 +398,15 @@ class AlohaAgilexDataset(Dataset):
     def __init__(
         self,
         repo_id="aloha_agilex",
-        config=PI0Config,
+        config=None,
         tokenizer=AutoTokenizer,
         data_config=None,
         image_processor=None,
         use_depth_align=False,
         verify_timestamps_sync: bool = True,
     ):
+        if config is None:
+            config = _default_pi0_config_cls()
         image_transforms = Resize((data_config.img_size, data_config.img_size))
         self.image_processor = image_processor
         # [i / 30 for i in range(50)] represents action chunks in 50 steps at 30 FPS.
@@ -400,7 +430,7 @@ class AlohaAgilexDataset(Dataset):
             episodes=episodes,
             image_transforms=image_transforms,
             delta_timestamps=delta_timestamps,
-            verify_timestamps_sync=verify_timestamps_sync,
+            tolerance_s=_lerobot_tolerance_s(verify_timestamps_sync),
         )
 
         required_columns = [
@@ -437,8 +467,8 @@ class AlohaAgilexDataset(Dataset):
 
     def getdata(self, idx):
         item = self.dataset[idx]
-        task = self.dataset_meta.tasks[int(item['task_index'])]
-        assert task == item['task']
+        task = _task_label_from_index(self.dataset_meta, item["task_index"])
+        assert task == item["task"]
         
         normalized_item = self.normalizer.normalize(item)
         # Fallback: use black image when wrist cameras are missing (e.g. video decode failed, num_workers>0)
@@ -454,8 +484,7 @@ class AlohaAgilexDataset(Dataset):
             else torch.zeros_like(base_image)
         )
 
-        task_index = int(item['task_index'])    
-        task_label = self.dataset_meta.tasks[task_index]
+        task_label = _task_label_from_index(self.dataset_meta, item["task_index"])
         prompt = [extract_semantic_motion(task_label)]
 
         batch_dict =  {
@@ -511,13 +540,15 @@ class CustomizedRobotwinDataset(Dataset):
     def __init__(
         self,
         repo_id="robotwin",
-        config=PI0Config,
+        config=None,
         tokenizer=AutoTokenizer,
         data_config=None,
         image_processor=None,
         use_depth_align=False,
         verify_timestamps_sync: bool = True,
     ):
+        if config is None:
+            config = _default_pi0_config_cls()
         image_transforms = Resize((data_config.img_size, data_config.img_size))
         self.image_processor = image_processor
         # [i / 30 for i in range(50)] represents action chunks in 50 steps at 30 FPS.
@@ -535,7 +566,7 @@ class CustomizedRobotwinDataset(Dataset):
             episodes=episodes,
             image_transforms=image_transforms,
             delta_timestamps=delta_timestamps,
-            verify_timestamps_sync=verify_timestamps_sync,
+            tolerance_s=_lerobot_tolerance_s(verify_timestamps_sync),
         )
         norm_stats = load_norm_stats_from_file(self.norm_stats_file)
         self.normalizer = Normalizer(
@@ -557,8 +588,8 @@ class CustomizedRobotwinDataset(Dataset):
 
     def getdata(self, idx):
         item = self.dataset[idx]
-        task = self.dataset_meta.tasks[int(item['task_index'])]
-        assert task == item['task']
+        task = _task_label_from_index(self.dataset_meta, item["task_index"])
+        assert task == item["task"]
 
         normalized_item = self.normalizer.normalize(item)
         # Fallback: use black image when wrist cameras are missing (e.g. video decode failed, num_workers>0)

@@ -3,8 +3,8 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from torch.nn import CrossEntropyLoss
-from lerobot.common.policies.pi0.configuration_pi0 import PI0Config
-from lerobot.common.policies.pretrained import PreTrainedPolicy
+from lerobot.policies.pi0.configuration_pi0 import PI0Config
+from lerobot.policies.pretrained import PreTrainedPolicy
 from torch import Tensor, nn
 from typing import List, Optional, Tuple, Union, Callable, Dict, Any
 from functools import partial
@@ -1533,12 +1533,28 @@ class LingbotVlaPolicy(PreTrainedPolicy):
     def get_optim_params(self) -> dict:
         return self.parameters()
 
-    @torch.no_grad
-    def select_action(
-        self, observation: dict[str, Tensor], noise: Tensor | None = None
-    ):
-        pass
-    
+    @torch.no_grad()
+    def predict_action_chunk(self, batch: dict[str, Tensor], **kwargs: Any) -> Tensor:
+        """Return ``[B, n_action_steps, max_action_dim]`` actions (Lingbot collator keys: ``images``, …)."""
+        self.eval()
+        noise = kwargs.get("noise")
+        return self.model.sample_actions(
+            batch["images"],
+            batch["img_masks"],
+            batch["lang_tokens"],
+            batch["lang_masks"],
+            batch["state"],
+            expert_imgs=batch.get("expert_imgs"),
+            vlm_causal=False,
+            noise=noise,
+        )
+
+    @torch.no_grad()
+    def select_action(self, batch: dict[str, Tensor], **kwargs: Any) -> Tensor:
+        """Single-step action for LeRobot API; training uses :meth:`forward` with keyword args instead."""
+        actions = self.predict_action_chunk(batch, **kwargs)
+        return actions[:, 0]
+
     def forward(
         self, images, img_masks, state, lang_tokens, lang_masks, actions, joint_mask=None, action_is_pad=None, expert_imgs=None, label=None, noise=None, time=None, vlm_causal=False, use_ki=False, depth_targets=None, norm_qkv=False
     ) -> tuple[Tensor, dict[str, Tensor]]:

@@ -20,7 +20,6 @@ from abc import ABC
 import torch
 from transformers import AutoModel, AutoModelForCausalLM, AutoModelForVision2Seq, PreTrainedModel
 from transformers.modeling_utils import no_init_weights
-from lerobot.common.policies.pi0.configuration_pi0 import PI0Config
 from ..utils import logging
 from ..utils.import_utils import is_torch_npu_available, is_vescale_available
 from .module_utils import init_empty_weights, load_model_weights
@@ -172,8 +171,20 @@ def _get_model_arch_from_config(model_config):
     return arch_name
 
 
+def _is_pi0_policy_config(model_config) -> bool:
+    """True when config is LeRobot PI0 (draccus ChoiceRegistry: ``config.type`` is ``'pi0'``).
+
+    Avoid importing ``PI0Config`` from ``lerobot.policies`` in this module: importing
+    ``lerobot.policies`` eagerly loads policy subpackages (e.g. PI0Policy) and heavy deps.
+    """
+    try:
+        return getattr(model_config, "type", None) == "pi0"
+    except Exception:
+        return False
+
+
 def get_loader(model_config, force_use_huggingface):
-    if isinstance(model_config, PI0Config):
+    if _is_pi0_policy_config(model_config):
         if 'qwen' not in model_config.tokenizer_path.lower():
             model_arch = 'PI0Policy'
         elif 'qwen2' in model_config.tokenizer_path.lower():

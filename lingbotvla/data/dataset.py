@@ -21,17 +21,15 @@ import torch
 from datasets import load_dataset
 from datasets.distributed import split_dataset_by_node
 from torch.utils.data import Dataset, IterableDataset
-from lerobot.common.policies.pi0.configuration_pi0 import PI0Config
 from torchvision.transforms.v2 import Resize
 from transformers import AutoTokenizer, AutoImageProcessor
-from lerobot.common.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatasetMetadata
+
+from lerobot.datasets.lerobot_dataset import LeRobotDataset
 import json
 from ..distributed.parallel_state import get_parallel_state
 from ..utils import logging
 from .vla_data import *
 from .vla_data.transform import Normalizer, prepare_action, prepare_images, prepare_language, prepare_state
-from lerobot.common.datasets.lerobot_dataset import LeRobotDataset
-from pathlib import Path
 
 logger = logging.get_logger(__name__)
 
@@ -164,11 +162,8 @@ def build_mapping_dataset(
     # return MappingDataset(data=dataset, transform=transform)
 
     path_obj = Path(data_path)
-    dataset = LeRobotDataset(
-        repo_id=path_obj.name, 
-        root=path_obj.parent,
-        local_files_only=True
-    )
+    # LeRobot v3: root is the dataset directory (contains meta/, data/), not its parent.
+    dataset = LeRobotDataset(repo_id=path_obj.name, root=str(path_obj))
     return MappingDataset(data=dataset, transform=transform)
 
 

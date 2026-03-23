@@ -25,8 +25,9 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-# LeRobot dataset - standard package for LeRobot format
-from lerobot.common.datasets.lerobot_dataset import LeRobotDataset, LeRobotDatasetMetadata
+# LeRobot dataset (v3 layout)
+from lerobot.datasets.dataset_metadata import LeRobotDatasetMetadata
+from lerobot.datasets.lerobot_dataset import LeRobotDataset
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -147,9 +148,17 @@ class RunningStats:
 
 def make_lerobot_dataset(repo_id: str, action_name: str = "action") -> torch.utils.data.Dataset:
     """Create a LeRobot dataset for norm computation. Returns raw items with observation.state and action."""
-    meta = LeRobotDatasetMetadata(repo_id)
+    path = Path(repo_id)
+    if path.is_dir():
+        rid, root = path.name, str(path)
+    else:
+        rid, root = repo_id, None
+    meta = LeRobotDatasetMetadata(rid, root=root) if root else LeRobotDatasetMetadata(rid)
     delta_timestamps = {action_name: [t / meta.fps for t in range(50)]}
-    return LeRobotDataset(repo_id=repo_id, delta_timestamps=delta_timestamps)
+    kwargs = {"repo_id": rid, "delta_timestamps": delta_timestamps}
+    if root:
+        kwargs["root"] = root
+    return LeRobotDataset(**kwargs)
 
 
 # ---------------------------------------------------------------------------
@@ -288,6 +297,6 @@ if __name__ == "__main__":
     main()
 
 
-python lingbot-vla/scripts/compute_norm_from_episodes_stats.py \
-  --episodes_stats /home/ss-oss1/data/user/jiankai/Data/lerobot_test_data/lerobot_data_10k/meta/episodes_stats.jsonl \
-  --output assets/norm_stats/ego10k_pretrain_norm.json
+# python lingbot-vla/scripts/compute_norm_from_episodes_stats.py \
+#   --episodes_stats /home/ss-oss1/data/user/jiankai/Data/lerobot_test_data/lerobot_data_10k/meta/episodes_stats.jsonl \
+#   --output assets/norm_stats/ego10k_pretrain_norm.json

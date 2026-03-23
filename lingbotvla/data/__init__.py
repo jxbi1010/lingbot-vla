@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from importlib import import_module
+from typing import Any
 
 from .chat_template import build_chat_template
 from .data_collator import (
@@ -24,13 +26,44 @@ from .data_collator import (
     UnpackDataCollator,
 )
 from .data_loader import build_dataloader
-from .dataset import (
-    build_iterative_dataset,
-    build_iterative_lerobot_dataset,
-    build_mapping_dataset,
-    liberoDataset,
-    RobotwinDataset,
-)
 from .data_transform import (
     VLADataCollatorWithPacking,
 )
+
+# Avoid importing `.dataset` at package import: it chains into vla_data/lerobot and
+# can pull `lerobot.policies` (heavy). Use lazy exports (PEP 562).
+_DATASET_EXPORTS = (
+    "build_iterative_dataset",
+    "build_iterative_lerobot_dataset",
+    "build_mapping_dataset",
+    "liberoDataset",
+    "RobotwinDataset",
+)
+
+__all__ = [
+    "build_chat_template",
+    "CollatePipeline",
+    "DataCollatorWithPacking",
+    "DataCollatorWithPadding",
+    "DataCollatorWithPositionIDs",
+    "MakeMicroBatchCollator",
+    "TextSequenceShardCollator",
+    "UnpackDataCollator",
+    "build_dataloader",
+    "VLADataCollatorWithPacking",
+    *_DATASET_EXPORTS,
+]
+
+
+def __getattr__(name: str) -> Any:
+    if name in _DATASET_EXPORTS:
+        mod = import_module(".dataset", __name__)
+        return getattr(mod, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    return sorted(
+        list(globals())
+        + list(_DATASET_EXPORTS)
+    )

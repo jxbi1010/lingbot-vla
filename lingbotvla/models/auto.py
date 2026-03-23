@@ -22,9 +22,9 @@ from transformers import (
     AutoTokenizer,
     PreTrainedModel,
 )
-from lerobot.configs.policies import PreTrainedConfig
 from ..distributed.parallel_state import get_parallel_state
 from ..utils import logging
+from .lerobot_pi0_config_registration import pretrained_policy_config_from_pretrained
 from .loader import BaseModelLoader, get_loader
 
 if TYPE_CHECKING:
@@ -79,7 +79,8 @@ def build_foundation_model(
     depth_incremental_training = config_kwargs['depth_incremental_training']
     norm_qkv =  config_kwargs['norm_qkv']
     loss_type = config_kwargs['loss_type']
-    config = PreTrainedConfig.from_pretrained(config_path)
+    # Must use Lingbot wrapper (maps/strips JSON keys for draccus); do not call PreTrainedConfig.from_pretrained directly.
+    config = pretrained_policy_config_from_pretrained(config_path)
     config.train_state_proj = True
     config.adanorm_time = adanorm_time
     config.split_gate_liner = config_kwargs['split_gate_liner']
