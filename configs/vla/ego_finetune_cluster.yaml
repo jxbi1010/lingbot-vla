@@ -12,14 +12,14 @@ data:
   num_workers: 16
   norm_type: bounds_99_woclip
   norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json #
-  chunk_subset: null  # # [0] = chunk-000,[0, 99] = chunk-000 to chunk-099 inclusive, etc. (set to null for full data)
+  chunk_subset: [0,49]  # # [0] = chunk-000,[0, 99] = chunk-000 to chunk-099 inclusive, etc. (set to null for full data)
   episode_subset: null # inclusive e.g.[0,99]
   verify_timestamps_sync: false
   # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
   dataset_init_main_process_first: true
 
 train:
-  output_dir: /checkpoints/jianxin/output/ego_21w_trail_000 #
+  output_dir: /checkpoints/jianxin/output/ego_5w_trail_000 #
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
