@@ -19,7 +19,7 @@ data:
   dataset_init_main_process_first: true
 
 train:
-  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_test_local_single_process_v3
+  output_dir: /checkpoints/jianxin/output/ego_test_local_single_process_v3
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
