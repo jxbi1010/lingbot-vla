@@ -40,6 +40,8 @@ import yaml
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
+from lingbotvla.utils.arguments import normalize_lerobot_roots
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -82,7 +84,13 @@ def make_data_config(config: dict, overrides: dict):
     data.update(overrides)
 
     cfg = DataConfig()
-    cfg.train_path = data.get("train_path")
+    raw_tp = data.get("train_path")
+    if raw_tp is None:
+        cfg.train_path = None
+    elif isinstance(raw_tp, list):
+        cfg.train_path = normalize_lerobot_roots([str(x) for x in raw_tp])
+    else:
+        cfg.train_path = normalize_lerobot_roots([str(raw_tp)])
     cfg.norm_stats_file = data.get("norm_stats_file", "assets/norm_stats/database_lerobot_00_norm.json")
     cfg.img_size = data.get("img_size", 224)
     cfg.norm_type = data.get("norm_type", "bounds_99_woclip")
@@ -135,6 +143,8 @@ def main():
     if not data_config.train_path:
         raise ValueError("train_path is required (from config or --data.train_path)")
 
+    train_roots = data_config.train_path
+
     data_name = config.get("data", {}).get("data_name", "robotwin_example")
     model_config = config.get("model", {})
     model_path = model_config.get("model_path") or model_config.get("config_path")
@@ -183,8 +193,10 @@ def main():
     from torch.utils.data import ConcatDataset
 
     if "libero" in data_name.lower():
+        if len(train_roots) != 1:
+            raise ValueError("libero expects exactly one train_path root")
         train_dataset = liberoDataset(
-            repo_id=data_config.train_path,
+            repo_id=train_roots[0],
             config=model_config_obj,
             tokenizer=processor.tokenizer,
             data_config=data_config,
@@ -192,10 +204,9 @@ def main():
             use_depth_align=False,
         )
     elif "robotwin" in data_name.lower():
-        train_paths = [p.strip() for p in data_config.train_path.split(",") if p.strip()]
-        if len(train_paths) == 1:
+        if len(train_roots) == 1:
             train_dataset = RobotwinDataset(
-                repo_id=train_paths[0],
+                repo_id=train_roots[0],
                 config=model_config_obj,
                 tokenizer=processor.tokenizer,
                 data_config=data_config,
@@ -212,15 +223,14 @@ def main():
                     image_processor=image_processor,
                     use_depth_align=False,
                 )
-                for path in train_paths
+                for path in train_roots
             ]
             train_dataset = ConcatDataset(datasets)
-            logger.info(f"Loaded {len(train_paths)} task datasets: {train_paths}")
+            logger.info(f"Loaded {len(train_roots)} task datasets: {train_roots}")
     elif "aloha_agilex" in data_name.lower():
-        train_paths = [p.strip() for p in data_config.train_path.split(",") if p.strip()]
-        if len(train_paths) == 1:
+        if len(train_roots) == 1:
             train_dataset = AlohaAgilexDataset(
-                repo_id=train_paths[0],
+                repo_id=train_roots[0],
                 config=model_config_obj,
                 tokenizer=processor.tokenizer,
                 data_config=data_config,
@@ -237,10 +247,10 @@ def main():
                     image_processor=image_processor,
                     use_depth_align=False,
                 )
-                for path in train_paths
+                for path in train_roots
             ]
             train_dataset = ConcatDataset(datasets)
-            logger.info(f"Loaded {len(train_paths)} task datasets: {train_paths}")
+            logger.info(f"Loaded {len(train_roots)} task datasets: {train_roots}")
     else:
         raise ValueError(f"Unsupported data_name: {data_name}")
 

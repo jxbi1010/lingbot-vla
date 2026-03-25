@@ -42,6 +42,20 @@ def _default_pi0_config_cls():
     return PI0Config
 
 
+def _dataset_root_from_config(data_config, repo_id: Union[str, Path]) -> Path:
+    """Resolve on-disk LeRobot root. If ``train_path`` is a list (multi-dataset YAML) or a comma-separated string, use ``repo_id`` for this dataset instance."""
+    raw = getattr(data_config, "train_path", None)
+    if isinstance(raw, list):
+        return Path(repo_id)
+    if raw is not None:
+        s = str(raw).strip()
+        if s and "," in s:
+            return Path(repo_id)
+        if s:
+            return Path(s)
+    return Path(repo_id)
+
+
 def _lerobot_tolerance_s(verify_timestamps_sync: bool) -> float:
     """LeRobot v3 has no verify_timestamps_sync; use tolerance_s for delta-timestamp checks."""
     return 1e-4 if verify_timestamps_sync else float("inf")
@@ -271,8 +285,7 @@ class RobotwinDataset(Dataset):
         self.config = config
         self.tokenizer = tokenizer
         self.norm_stats_file = data_config.norm_stats_file
-        train_path = getattr(data_config, "train_path", None) or repo_id
-        dataset_path = Path(train_path)
+        dataset_path = _dataset_root_from_config(data_config, repo_id)
         # Use dataset folder name as repo_id (not "local") to avoid 401 when fallback download is attempted
         local_repo_id = dataset_path.name
         self.dataset_meta = LeRobotDatasetMetadata(repo_id=local_repo_id, root=str(dataset_path))
@@ -414,8 +427,7 @@ class AlohaAgilexDataset(Dataset):
         self.config = config
         self.tokenizer = tokenizer
         self.norm_stats_file = data_config.norm_stats_file
-        train_path = getattr(data_config, "train_path", None) or repo_id
-        dataset_path = Path(train_path)
+        dataset_path = _dataset_root_from_config(data_config, repo_id)
         # Use dataset folder name as repo_id (not "local") to avoid 401 when fallback download is attempted
         local_repo_id = dataset_path.name
         self.dataset_meta = LeRobotDatasetMetadata(repo_id=local_repo_id, root=str(dataset_path))

@@ -31,7 +31,14 @@ from lingbotvla.models import build_foundation_model, build_processor, save_mode
 from lingbotvla.optim import build_lr_scheduler, build_optimizer
 from lingbotvla.utils import helper
 from lingbotvla.utils.ema import ema_update
-from lingbotvla.utils.arguments import DataArguments, ModelArguments, TrainingArguments, parse_args, save_args
+from lingbotvla.utils.arguments import (
+    DataArguments,
+    ModelArguments,
+    TrainingArguments,
+    normalize_lerobot_roots,
+    parse_args,
+    save_args,
+)
 from lingbotvla.utils.dist_utils import all_reduce
 
 from lingbotvla.models.vla.vision_models.module_utils import build_depth_model, get_depth_target, log_depth
@@ -84,15 +91,20 @@ def _build_vla_dataset(
     model,
     processor,
     use_depth_align: bool,
-    paths_str: str,
+    roots: List[str],
     compute_train_steps: bool,
 ) -> Any:
-    """Build LeRobot-backed VLA dataset(s). Uses ``paths_str`` (comma-separated like ``train_path``) and a data config with matching ``train_path`` for path resolution inside dataset classes."""
-    data_cfg = replace(args.data, train_path=paths_str)
+    """Build LeRobot-backed VLA dataset(s). ``roots`` is the normalized list of LeRobot dataset directories (from ``data.train_path`` or ``data.val_path``)."""
+    paths = [p.strip() for p in roots if p.strip()]
+    if not paths:
+        raise ValueError("At least one dataset root path is required.")
+    data_cfg = replace(args.data, train_path=paths)
     data_cfg.chunk_size = args.train.chunk_size
     if args.data.data_name == "libero":
+        if len(paths) != 1:
+            raise ValueError("data_name=libero expects exactly one path in train_path/val_path")
         out = liberoDataset(
-            repo_id=paths_str,
+            repo_id=paths[0],
             config=model.config,
             tokenizer=processor.tokenizer,
             data_config=data_cfg,
@@ -101,7 +113,6 @@ def _build_vla_dataset(
             verify_timestamps_sync=args.data.verify_timestamps_sync,
         )
     elif "robotwin" in args.data.data_name.lower():
-        paths = [p.strip() for p in paths_str.split(",") if p.strip()]
         if len(paths) == 1:
             out = RobotwinDataset(
                 repo_id=paths[0],
@@ -129,7 +140,6 @@ def _build_vla_dataset(
             logger.info_rank0(f"Loaded {len(paths)} task datasets: {paths}")
     elif args.data.data_name == "aloha_agilex":
         logger.info_rank0("Start building AlohaAgilex dataset")
-        paths = [p.strip() for p in paths_str.split(",") if p.strip()]
         if len(paths) == 1:
             out = AlohaAgilexDataset(
                 repo_id=paths[0],
@@ -167,7 +177,7 @@ def _build_vla_train_dataset(args: "Arguments", model, processor, use_depth_alig
     """Build LeRobot-backed VLA train dataset(s). Each rank must call this once to own a Dataset in memory."""
     args.data.chunk_size = args.train.chunk_size
     return _build_vla_dataset(
-        args, model, processor, use_depth_align, args.data.train_path, compute_train_steps=True
+        args, model, processor, use_depth_align, list(args.data.train_path), compute_train_steps=True
     )
 
 
@@ -192,7 +202,7 @@ def _build_vla_val_dataset_pickled(
                 model,
                 processor,
                 use_depth_align,
-                args.data.val_path.strip(),
+                list(args.data.val_path),
                 compute_train_steps=False,
             )
             _pickle_dump_train_dataset(val_dataset, val_cache_path)
@@ -212,7 +222,7 @@ def _build_vla_val_dataset_pickled(
             model,
             processor,
             use_depth_align,
-            args.data.val_path.strip(),
+            list(args.data.val_path),
             compute_train_steps=False,
         )
     return val_dataset
@@ -478,12 +488,19 @@ class MyDataArguments(DataArguments):
         default=None,
         metadata={"help": "Path to the normalization stats file."},
     )
-    val_path: Optional[str] = field(
+    val_path: Optional[List[str]] = field(
         default=None,
         metadata={
-            "help": "LeRobot dataset root(s) for validation, same format as train_path (comma-separated for multiple). Required when train.eval_frequency > 0."
+            "help": "LeRobot validation root(s): YAML list or repeated CLI flags; comma-separated strings in one entry are split. Required when train.eval_frequency > 0."
         },
     )
+
+    def __post_init__(self):
+        if self.val_path is not None:
+            self.val_path = normalize_lerobot_roots(self.val_path)
+            if not self.val_path:
+                self.val_path = None
+        super().__post_init__()
 
 
 @dataclass
@@ -604,7 +621,7 @@ def main():
                 raise ValueError(
                     "train.eval_frequency > 0 requires train.use_ema=true; validation uses the EMA model under eval()."
                 )
-            if not (args.data.val_path or "").strip():
+            if not args.data.val_path:
                 raise ValueError("train.eval_frequency > 0 requires non-empty data.val_path.")
             if args.train.eval_steps <= 0:
                 raise ValueError("train.eval_steps must be positive when train.eval_frequency > 0.")

@@ -99,7 +99,8 @@ def main():
     logger.info_rank0(json.dumps(asdict(args), indent=2))
     logger.info_rank0("Prepare data (Franka 16-D state/action)")
 
-    train_path = args.data.train_path or DEFAULT_TRAIN_PATH
+    roots = args.data.train_path
+    train_path = roots[0]
     assert args.data.datasets_type == "vla", "datasets_type must be 'vla'"
 
     dataset = VlaDataset(repo_id=train_path, action_name="action")

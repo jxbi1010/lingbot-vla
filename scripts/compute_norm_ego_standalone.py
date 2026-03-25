@@ -33,6 +33,29 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def _normalize_dataset_roots(raw) -> list:
+    """Accept YAML string, comma-separated string, or list of paths."""
+    if raw is None:
+        return []
+    if isinstance(raw, list):
+        out = []
+        for p in raw:
+            s = str(p).strip()
+            if not s:
+                continue
+            if "," in s:
+                out.extend(x.strip() for x in s.split(",") if x.strip())
+            else:
+                out.append(s)
+        return out
+    s = str(raw).strip()
+    if not s:
+        return []
+    if "," in s:
+        return [x.strip() for x in s.split(",") if x.strip()]
+    return [s]
+
+
 # ---------------------------------------------------------------------------
 # Inlined RunningStats (from lingbotvla.utils.normalize) - no pydantic/numpydantic
 # ---------------------------------------------------------------------------
@@ -273,17 +296,20 @@ def main():
         logger.info(f"Loaded config from {args.config}")
 
     # Resolve values: CLI overrides config
-    train_path = args.train_path or (config.get("data", {}).get("train_path"))
+    raw_tp = args.train_path or (config.get("data", {}).get("train_path"))
+    roots = _normalize_dataset_roots(raw_tp)
     norm_path = args.norm_path or (config.get("data", {}).get("norm_path"))
 
-    if not train_path or not norm_path:
-        parser.error("train_path and norm_path required (use --config or --train_path/--norm_path)")
+    if len(roots) != 1 or not norm_path:
+        parser.error("Exactly one train_path root and norm_path required (use --config or CLI)")
+
+    train_path = roots[0]
 
     success = compute_norm_stats(
         train_path=train_path,
         norm_path=norm_path,
-        batch_size=batch_size,
-        chunk_size=chunk_size,
+        batch_size=args.batch_size,
+        chunk_size=args.chunk_size,
         state_key=args.state_key,
         action_key=args.action_key,
         num_workers=args.num_workers,

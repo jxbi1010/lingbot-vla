@@ -68,7 +68,10 @@ def main():
     stats = None
     
     assert args.data.datasets_type == 'vla'
-    dataset = VlaDataset(repo_id=args.data.train_path, action_name='action')
+    roots = args.data.train_path
+    if len(roots) != 1:
+        raise ValueError("compute_norm_robotwin_5 expects exactly one entry in data.train_path")
+    dataset = VlaDataset(repo_id=roots[0], action_name='action')
 
     state_norm_keys = ['observation.state']
     acton_norm_keys = ['action']
@@ -78,9 +81,9 @@ def main():
     chunk_size = args.data.chunk_size
 
     try:
-        success = compute_norm(dataset, args.data.train_path, args.train.global_batch_size, stats, state_norm_keys, acton_norm_keys, delta_norm)
+        success = compute_norm(dataset, roots[0], args.train.global_batch_size, stats, state_norm_keys, acton_norm_keys, delta_norm)
     except Exception as e:
-        fail_info = f"{args.data.train_path} {e}"
+        fail_info = f"{roots[0]} {e}"
         print(fail_info)
         
 

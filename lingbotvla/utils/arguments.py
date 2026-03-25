@@ -175,10 +175,26 @@ class ModelArguments:
                 decoder_args["config_path"] = decoder_args["model_path"]
 
 
+def normalize_lerobot_roots(paths: List[str]) -> List[str]:
+    """Expand YAML/CLI list of roots; split comma-separated strings inside each entry (legacy)."""
+    out: List[str] = []
+    for p in paths:
+        s = str(p).strip()
+        if not s:
+            continue
+        if "," in s:
+            out.extend(x.strip() for x in s.split(",") if x.strip())
+        else:
+            out.append(s)
+    return out
+
+
 @dataclass
 class DataArguments:
-    train_path: str = field(
-        metadata={"help": "Path of the training data. Use comma to separate multiple datasets."},
+    train_path: List[str] = field(
+        metadata={
+            "help": "LeRobot dataset root path(s). Prefer a YAML list; CLI: repeat `--data.train_path P1 --data.train_path P2`. Comma-separated strings in one entry are still split for compatibility."
+        },
     )
     train_size: int = field(
         default=10_000_000,
@@ -250,10 +266,13 @@ class DataArguments:
     )
     task_subset: Optional[List[Union[int, str]]] = field(
         default=None,
-        metadata={"help": "If set, only load these tasks. Use task indices [0,1,2] or task names [\"open_microwave\", \"click_bell\"]. Applies to single-dataset multi-task data. Ignored when train_path has multiple comma-separated paths."},
+        metadata={"help": "If set, only load these tasks. Use task indices [0,1,2] or task names [\"open_microwave\", \"click_bell\"]. Applies to single-dataset multi-task data. Ignored when train_path lists multiple dataset roots."},
     )
 
     def __post_init__(self):
+        self.train_path = normalize_lerobot_roots(self.train_path)
+        if not self.train_path:
+            raise ValueError("data.train_path must contain at least one non-empty path")
         if self.text_keys is None:
             if self.data_type == "plaintext":
                 self.text_keys = "content_split"
