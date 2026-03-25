@@ -71,6 +71,7 @@ def build_dataloader(
     pin_memory: bool = True,
     prefetch_factor: Optional[int] = 2,
     seed: int = 0,
+    shuffle: bool = True,
 ) -> "DistributedDataloader":
     parallel_state = get_parallel_state()
     token_micro_bsz = micro_batch_size * max_seq_len
@@ -122,7 +123,7 @@ def build_dataloader(
             dataset,
             num_replicas=parallel_state.dp_size,
             rank=parallel_state.dp_rank,
-            shuffle=True,
+            shuffle=shuffle,
             seed=seed,
         )
 

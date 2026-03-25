@@ -4,7 +4,7 @@ from copy import deepcopy
 import os
 import re
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from functools import partial
 from io import BytesIO
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Literal
@@ -64,6 +64,11 @@ def _wait_for_vla_pickle_cache(cache_path: str, global_rank: int) -> None:
     logger.info(f"rank {global_rank} found pickle after {time.time() - t0:.1f}s")
 
 
+def _val_dataset_pickle_path(train_cache_path: str) -> str:
+    base, ext = os.path.splitext(train_cache_path)
+    return f"{base}_val{ext if ext else '.pkl'}"
+
+
 def _pickle_dump_train_dataset(train_dataset: Any, cache_path: str) -> None:
     parent = os.path.dirname(cache_path)
     if parent:
@@ -74,27 +79,35 @@ def _pickle_dump_train_dataset(train_dataset: Any, cache_path: str) -> None:
     os.replace(tmp_path, cache_path)
 
 
-def _build_vla_train_dataset(args: "Arguments", model, processor, use_depth_align: bool):
-    """Build LeRobot-backed VLA dataset(s). Each rank must call this once to own a Dataset in memory."""
-    args.data.chunk_size = args.train.chunk_size
+def _build_vla_dataset(
+    args: "Arguments",
+    model,
+    processor,
+    use_depth_align: bool,
+    paths_str: str,
+    compute_train_steps: bool,
+) -> Any:
+    """Build LeRobot-backed VLA dataset(s). Uses ``paths_str`` (comma-separated like ``train_path``) and a data config with matching ``train_path`` for path resolution inside dataset classes."""
+    data_cfg = replace(args.data, train_path=paths_str)
+    data_cfg.chunk_size = args.train.chunk_size
     if args.data.data_name == "libero":
-        train_dataset = liberoDataset(
-            repo_id=args.data.train_path,
+        out = liberoDataset(
+            repo_id=paths_str,
             config=model.config,
             tokenizer=processor.tokenizer,
-            data_config=args.data,
+            data_config=data_cfg,
             image_processor=processor.image_processor if "qwen" in args.model.tokenizer_path.lower() else None,
             use_depth_align=use_depth_align,
             verify_timestamps_sync=args.data.verify_timestamps_sync,
         )
     elif "robotwin" in args.data.data_name.lower():
-        train_paths = [p.strip() for p in args.data.train_path.split(",") if p.strip()]
-        if len(train_paths) == 1:
-            train_dataset = RobotwinDataset(
-                repo_id=train_paths[0],
+        paths = [p.strip() for p in paths_str.split(",") if p.strip()]
+        if len(paths) == 1:
+            out = RobotwinDataset(
+                repo_id=paths[0],
                 config=model.config,
                 tokenizer=processor.tokenizer,
-                data_config=args.data,
+                data_config=data_cfg,
                 image_processor=processor.image_processor if "qwen" in args.model.tokenizer_path.lower() else None,
                 use_depth_align=use_depth_align,
                 verify_timestamps_sync=args.data.verify_timestamps_sync,
@@ -105,24 +118,24 @@ def _build_vla_train_dataset(args: "Arguments", model, processor, use_depth_alig
                     repo_id=path,
                     config=model.config,
                     tokenizer=processor.tokenizer,
-                    data_config=args.data,
+                    data_config=data_cfg,
                     image_processor=processor.image_processor if "qwen" in args.model.tokenizer_path.lower() else None,
                     use_depth_align=use_depth_align,
                     verify_timestamps_sync=args.data.verify_timestamps_sync,
                 )
-                for path in train_paths
+                for path in paths
             ]
-            train_dataset = ConcatDataset(datasets)
-            logger.info_rank0(f"Loaded {len(train_paths)} task datasets: {train_paths}")
+            out = ConcatDataset(datasets)
+            logger.info_rank0(f"Loaded {len(paths)} task datasets: {paths}")
     elif args.data.data_name == "aloha_agilex":
         logger.info_rank0("Start building AlohaAgilex dataset")
-        train_paths = [p.strip() for p in args.data.train_path.split(",") if p.strip()]
-        if len(train_paths) == 1:
-            train_dataset = AlohaAgilexDataset(
-                repo_id=train_paths[0],
+        paths = [p.strip() for p in paths_str.split(",") if p.strip()]
+        if len(paths) == 1:
+            out = AlohaAgilexDataset(
+                repo_id=paths[0],
                 config=model.config,
                 tokenizer=processor.tokenizer,
-                data_config=args.data,
+                data_config=data_cfg,
                 image_processor=processor.image_processor if "qwen" in args.model.tokenizer_path.lower() else None,
                 use_depth_align=use_depth_align,
                 verify_timestamps_sync=args.data.verify_timestamps_sync,
@@ -133,20 +146,137 @@ def _build_vla_train_dataset(args: "Arguments", model, processor, use_depth_alig
                     repo_id=path,
                     config=model.config,
                     tokenizer=processor.tokenizer,
-                    data_config=args.data,
+                    data_config=data_cfg,
                     image_processor=processor.image_processor if "qwen" in args.model.tokenizer_path.lower() else None,
                     use_depth_align=use_depth_align,
                     verify_timestamps_sync=args.data.verify_timestamps_sync,
                 )
-                for path in train_paths
+                for path in paths
             ]
-            train_dataset = ConcatDataset(datasets)
-            logger.info_rank0(f"Loaded {len(train_paths)} task datasets: {train_paths}")
+            out = ConcatDataset(datasets)
+            logger.info_rank0(f"Loaded {len(paths)} task datasets: {paths}")
     else:
         raise ValueError(f"Unsupported data.data_name for vla: {args.data.data_name!r}")
 
-    args.train.compute_train_steps(args.data.max_seq_len, args.data.train_size, len(train_dataset))
-    return train_dataset
+    if compute_train_steps:
+        args.train.compute_train_steps(args.data.max_seq_len, args.data.train_size, len(out))
+    return out
+
+
+def _build_vla_train_dataset(args: "Arguments", model, processor, use_depth_align: bool):
+    """Build LeRobot-backed VLA train dataset(s). Each rank must call this once to own a Dataset in memory."""
+    args.data.chunk_size = args.train.chunk_size
+    return _build_vla_dataset(
+        args, model, processor, use_depth_align, args.data.train_path, compute_train_steps=True
+    )
+
+
+def _build_vla_val_dataset_pickled(
+    args: "Arguments", model, processor, use_depth_align: bool, mfirst: bool, val_cache_path: str
+) -> Any:
+    """Build or unpickle validation dataset (same multi-rank pattern as train)."""
+    if mfirst:
+        cache_dir = os.path.dirname(val_cache_path)
+        if cache_dir:
+            os.makedirs(cache_dir, exist_ok=True)
+        if args.train.global_rank == 0:
+            try:
+                os.remove(val_cache_path)
+            except OSError:
+                pass
+            logger.info_rank0(
+                f"Building VLA val dataset on rank 0; will pickle to {val_cache_path} (other ranks unpickle)."
+            )
+            val_dataset = _build_vla_dataset(
+                args,
+                model,
+                processor,
+                use_depth_align,
+                args.data.val_path.strip(),
+                compute_train_steps=False,
+            )
+            _pickle_dump_train_dataset(val_dataset, val_cache_path)
+            logger.info_rank0(f"Pickled val dataset to {val_cache_path}")
+        else:
+            _wait_for_vla_pickle_cache(val_cache_path, args.train.global_rank)
+        dist.barrier()
+        if args.train.global_rank != 0:
+            with open(val_cache_path, "rb") as f:
+                val_dataset = pickle.load(f)
+            logger.info(
+                f"rank {args.train.global_rank} unpickled val dataset from {val_cache_path}"
+            )
+    else:
+        val_dataset = _build_vla_dataset(
+            args,
+            model,
+            processor,
+            use_depth_align,
+            args.data.val_path.strip(),
+            compute_train_steps=False,
+        )
+    return val_dataset
+
+
+def _run_vla_validation(
+    eval_model: torch.nn.Module,
+    val_dataloader: Any,
+    eval_steps: int,
+    args: "Arguments",
+    use_depth_align: bool,
+    depth_model_type: Any,
+    moge_model: Any,
+    morgbd_model: Any,
+    model_fwd_context: Any,
+) -> tuple[float, float, float]:
+    """Average loss over ``eval_steps`` val dataloader steps (per data-parallel rank), then all-reduce. ``eval_model`` should already be in eval mode (e.g. EMA)."""
+    eval_model.eval()
+    it = iter(val_dataloader)
+    total_loss = 0.0
+    total_vla = 0.0
+    total_depth = 0.0
+    for _ in range(eval_steps):
+        try:
+            micro_batches: List[Dict[str, Any]] = next(it)
+        except StopIteration:
+            it = iter(val_dataloader)
+            micro_batches = next(it)
+        n_micro = len(micro_batches)
+        for micro_batch in micro_batches:
+            micro_batch.pop("rep_id", None)
+            micro_batch = {
+                k: v.cuda(non_blocking=True) if isinstance(v, torch.Tensor) else v for k, v in micro_batch.items()
+            }
+            depth_targets = None
+            if use_depth_align:
+                with torch.no_grad():
+                    with torch.autocast("cuda", dtype=torch.bfloat16):
+                        pil_images = micro_batch.pop("pil_images", None)
+                        depth_targets, _cls = get_depth_target(
+                            depth_model_type, (moge_model, morgbd_model), pil_images
+                        )
+            with torch.no_grad():
+                with model_fwd_context:
+                    loss, vla_loss, depth_loss, _loss_log, _depth_preds = eval_model(
+                        **micro_batch,
+                        vlm_causal=args.train.vlm_causal,
+                        use_ki=args.train.use_ki,
+                        depth_targets=depth_targets,
+                    )
+                loss = loss / n_micro
+                vla_loss = vla_loss / n_micro
+                depth_loss = depth_loss / n_micro
+            total_loss += loss.item()
+            total_vla += vla_loss.item()
+            if not (isinstance(depth_loss, int) or isinstance(depth_loss, float)):
+                total_depth += depth_loss.item()
+    total_loss /= eval_steps
+    total_vla /= eval_steps
+    total_depth /= eval_steps
+    total_loss, total_vla, total_depth = all_reduce(
+        (total_loss, total_vla, total_depth), group=get_parallel_state().fsdp_group
+    )
+    return total_loss, total_vla, total_depth
 
 
 def get_param_groups(model: "torch.nn.Module", default_lr: float, vit_lr: float):
@@ -286,6 +416,18 @@ class MyTrainingArguments(TrainingArguments):
         default=None,
         metadata={"help": "Name of the embodiment type."},
     )
+    eval_frequency: int = field(
+        default=0,
+        metadata={
+            "help": "Run validation every N global steps (0 = disabled). Requires train.use_ema and data.val_path."
+        },
+    )
+    eval_steps: int = field(
+        default=50,
+        metadata={
+            "help": "Number of val dataloader steps per validation (per data-parallel rank), same notion as one training step."
+        },
+    )
 
 
 @dataclass
@@ -335,6 +477,12 @@ class MyDataArguments(DataArguments):
     norm_stats_file: str = field(
         default=None,
         metadata={"help": "Path to the normalization stats file."},
+    )
+    val_path: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": "LeRobot dataset root(s) for validation, same format as train_path (comma-separated for multiple). Required when train.eval_frequency > 0."
+        },
     )
 
 
@@ -415,6 +563,7 @@ def main():
     )
     use_depth_align = True if args.train.align_params != {} else False
     depth_model_type = None
+    moge_model, morgbd_model = None, None
     if use_depth_align:
         assert args.model.moge_path is not None and args.model.morgbd_path is not None, 'Depth models need to be loaded when uing LingBot-VLA-Depth!!!'
         args.train.align_params['visual_dir'] = os.path.join(args.train.output_dir, 'images')
@@ -444,7 +593,22 @@ def main():
         else:
             data_collate_fn.append(OmniDataCollatorWithPadding())
 
+    val_dataloader = None
     if args.data.dataloader_type == "native":
+        if args.train.eval_frequency > 0:
+            if args.data.datasets_type != "vla":
+                raise ValueError(
+                    "train.eval_frequency > 0 is only supported for data.datasets_type=vla with dataloader_type=native."
+                )
+            if not args.train.use_ema:
+                raise ValueError(
+                    "train.eval_frequency > 0 requires train.use_ema=true; validation uses the EMA model under eval()."
+                )
+            if not (args.data.val_path or "").strip():
+                raise ValueError("train.eval_frequency > 0 requires non-empty data.val_path.")
+            if args.train.eval_steps <= 0:
+                raise ValueError("train.eval_steps must be positive when train.eval_frequency > 0.")
+
         if args.data.datasets_type == 'vla':
             logger.info_rank0("Start building VLA dataset")
             mfirst = args.data.dataset_init_main_process_first and args.train.world_size > 1
@@ -477,26 +641,58 @@ def main():
                     )
             else:
                 train_dataset = _build_vla_train_dataset(args, model, processor, use_depth_align)
-        
-        train_dataloader = build_dataloader(
-            dataset=train_dataset,
-            micro_batch_size=args.train.micro_batch_size,
-            global_batch_size=args.train.global_batch_size,
-            dataloader_batch_size=args.train.dataloader_batch_size,
-            seed=args.train.seed,
-            collate_fn=data_collate_fn,
-            max_seq_len=args.data.max_seq_len,
-            train_steps=args.train.train_steps,
-            rmpad=args.train.rmpad,
-            rmpad_with_pos_ids=args.train.rmpad_with_pos_ids,
-            bsz_warmup_ratio=args.train.bsz_warmup_ratio,
-            dyn_bsz_margin=args.train.dyn_bsz_margin,
-            dyn_bsz_buffer_size=args.train.dyn_bsz_buffer_size,
-            num_workers=args.data.num_workers,
-            drop_last=args.data.drop_last,
-            pin_memory=args.data.pin_memory,
-            prefetch_factor=args.data.prefetch_factor if args.data.num_workers > 0 else None,
-        )
+
+            train_dataloader = build_dataloader(
+                dataset=train_dataset,
+                micro_batch_size=args.train.micro_batch_size,
+                global_batch_size=args.train.global_batch_size,
+                dataloader_batch_size=args.train.dataloader_batch_size,
+                seed=args.train.seed,
+                collate_fn=data_collate_fn,
+                max_seq_len=args.data.max_seq_len,
+                train_steps=args.train.train_steps,
+                rmpad=args.train.rmpad,
+                rmpad_with_pos_ids=args.train.rmpad_with_pos_ids,
+                bsz_warmup_ratio=args.train.bsz_warmup_ratio,
+                dyn_bsz_margin=args.train.dyn_bsz_margin,
+                dyn_bsz_buffer_size=args.train.dyn_bsz_buffer_size,
+                num_workers=args.data.num_workers,
+                drop_last=args.data.drop_last,
+                pin_memory=args.data.pin_memory,
+                prefetch_factor=args.data.prefetch_factor if args.data.num_workers > 0 else None,
+            )
+            if args.train.eval_frequency > 0:
+                val_cache_path = _val_dataset_pickle_path(args.data.dataset_pickle_cache_path)
+                val_dataset = _build_vla_val_dataset_pickled(
+                    args, model, processor, use_depth_align, mfirst, val_cache_path
+                )
+                val_dataloader = build_dataloader(
+                    dataset=val_dataset,
+                    micro_batch_size=args.train.micro_batch_size,
+                    global_batch_size=args.train.global_batch_size,
+                    dataloader_batch_size=args.train.dataloader_batch_size,
+                    seed=args.train.seed,
+                    collate_fn=data_collate_fn,
+                    max_seq_len=args.data.max_seq_len,
+                    train_steps=args.train.eval_steps,
+                    rmpad=args.train.rmpad,
+                    rmpad_with_pos_ids=args.train.rmpad_with_pos_ids,
+                    bsz_warmup_ratio=args.train.bsz_warmup_ratio,
+                    dyn_bsz_margin=args.train.dyn_bsz_margin,
+                    dyn_bsz_buffer_size=args.train.dyn_bsz_buffer_size,
+                    num_workers=args.data.num_workers,
+                    drop_last=False,
+                    pin_memory=args.data.pin_memory,
+                    prefetch_factor=args.data.prefetch_factor if args.data.num_workers > 0 else None,
+                    shuffle=False,
+                )
+                logger.info_rank0(
+                    f"Validation enabled: eval_frequency={args.train.eval_frequency}, eval_steps={args.train.eval_steps}"
+                )
+        else:
+            raise NotImplementedError(
+                "train_lingbotvla.py only supports data.datasets_type=vla for dataloader_type=native."
+            )
     else:
         raise NotImplementedError(f"Unsupported dataloader type: {args.data.dataloader_type}.")
 
@@ -674,6 +870,8 @@ def main():
     for epoch in range(start_epoch, args.train.num_train_epochs):
         if hasattr(train_dataloader, "set_epoch"):
             train_dataloader.set_epoch(epoch)
+        if val_dataloader is not None and hasattr(val_dataloader, "set_epoch"):
+            val_dataloader.set_epoch(epoch)
 
         data_loader_tqdm = trange(
             args.train.train_steps,
@@ -831,6 +1029,38 @@ def main():
                 #         with torch.no_grad():
                 #             with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
                 #                 log_depth(morgbd_model, depth_preds, depth_targets, steps=global_step, config=args.train.align_params, cls_token=cls_token)
+
+            if val_dataloader is not None and global_step % args.train.eval_frequency == 0:
+                helper.empty_cache()
+                val_loss, val_vla, val_depth = _run_vla_validation(
+                    model_ema,
+                    val_dataloader,
+                    args.train.eval_steps,
+                    args,
+                    use_depth_align,
+                    depth_model_type,
+                    moge_model,
+                    morgbd_model,
+                    model_fwd_context,
+                )
+                dist.barrier()
+                logger.info_rank0(
+                    f"Validation @ step {global_step}: loss={val_loss:.4f}, vla_loss={val_vla:.4f}, depth_loss={val_depth:.4f}"
+                )
+                if args.train.global_rank == 0:
+                    writer.add_scalar("validation/loss", val_loss, global_step)
+                    writer.add_scalar("validation/vla_loss", val_vla, global_step)
+                    writer.add_scalar("validation/depth_loss", val_depth, global_step)
+                    if args.train.use_wandb:
+                        wandb.log(
+                            {
+                                "validation/loss": val_loss,
+                                "validation/vla_loss": val_vla,
+                                "validation/depth_loss": val_depth,
+                            },
+                            step=global_step,
+                        )
+                helper.empty_cache()
 
             if args.train.save_steps and global_step % args.train.save_steps == 0:
                 helper.empty_cache()

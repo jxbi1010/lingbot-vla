@@ -8,15 +8,16 @@ model:
 data:
   datasets_type: vla
   data_name: robotwin_example
-  train_path: /home/ss-oss1/data/user/yuqi/data/database_lerobot_00_v30/
+  train_path: /home/ss-oss1/data/user/yuqi/data/database_lerobot_00_v30,/home/ss-oss1/data/user/yuqi/data/database_lerobot_01_v30, /home/ss-oss1/data/user/yuqi/data/database_lerobot_02_v30, /home/ss-oss1/data/user/yuqi/data/database_lerobot_03_v30
+  # Optional: LeRobot root(s) for validation (same format as train_path). Requires train.use_ema, train.eval_frequency > 0.
+  val_path: /home/ss-oss1/data/user/yuqi/data/database_lerobot_04_v30
   num_workers: 16
   norm_type: bounds_99_woclip
   norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json #
   chunk_subset: null  # # [0] = chunk-000,[0, 99] = chunk-000 to chunk-099 inclusive, etc. (set to null for full data)
   episode_subset: null # inclusive e.g.[0,99]
   verify_timestamps_sync: false
-  # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
-  dataset_init_main_process_first: true
+  dataset_init_main_process_first: true # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
 
 train:
   output_dir: /checkpoints/jianxin/output/ego_test_local_yuqi_v3
@@ -41,9 +42,13 @@ train:
   num_train_epochs: 10
   micro_batch_size: 32
   global_batch_size: 256
-  max_steps: 100000
+  max_steps: 1000000
   ckpt_manager: dcp
   save_steps: 5000
   save_epochs: 1
   enable_fp32: true
   enable_resume: true
+  # Validation (EMA model, eval mode): set use_ema true, val_path, then eval_frequency > 0.
+  use_ema: true
+  eval_frequency: 1000
+  eval_steps: 50
