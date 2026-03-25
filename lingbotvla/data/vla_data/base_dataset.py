@@ -42,6 +42,55 @@ def _default_pi0_config_cls():
     return PI0Config
 
 
+def _parquet_load_failure_hint(dataset_root: Path, max_report: int = 12) -> str:
+    """List empty or suspiciously small parquet files under data/ (common cause of ArrowInvalid)."""
+    data_dir = dataset_root / "data"
+    if not data_dir.is_dir():
+        return f"No directory {data_dir} (expected LeRobot layout with data/*.parquet)."
+    bad: List[str] = []
+    for p in sorted(data_dir.rglob("*.parquet")):
+        try:
+            sz = p.stat().st_size
+        except OSError:
+            continue
+        if sz < 64:
+            bad.append(f"{p} ({sz} B)")
+        if len(bad) >= max_report:
+            break
+    if bad:
+        return (
+            "Empty/tiny parquet files (likely corrupt or incomplete write): "
+            + "; ".join(bad)
+            + (f" ... ({max_report} max shown)" if len(bad) >= max_report else "")
+        )
+    return (
+        "No empty/tiny parquet found under data/; file may be truncated mid-write or cache corrupted. "
+        "Try: find bad files with `find <root>/data -name '*.parquet' -size 0`, "
+        "re-export the dataset, or clear HF/datasets cache and retry."
+    )
+
+
+def _open_lerobot_dataset(ctor, *, dataset_path: Path, **lerobot_kwargs):
+    """Construct LeRobotDataset with actionable errors on corrupt parquet (ArrowInvalid)."""
+    try:
+        return ctor(**lerobot_kwargs)
+    except Exception as e:
+        err = str(e).lower()
+        if (
+            "arrow" in err
+            or "parquet" in err
+            or "schema" in err
+            or "length 0" in err
+            or "record batch" in err
+        ):
+            hint = _parquet_load_failure_hint(dataset_path)
+            raise RuntimeError(
+                f"Failed to load LeRobot parquet for root={dataset_path.resolve()}. "
+                f"Underlying error: {type(e).__name__}: {e}\n{hint}"
+            ) from e
+        raise
+
+
 def _dataset_root_from_config(data_config, repo_id: Union[str, Path]) -> Path:
     """Resolve on-disk LeRobot root. If ``train_path`` is a list (multi-dataset YAML) or a comma-separated string, use ``repo_id`` for this dataset instance."""
     raw = getattr(data_config, "train_path", None)
@@ -294,7 +343,9 @@ class RobotwinDataset(Dataset):
         }
         episodes = _get_episodes_subset(data_config, self.dataset_meta)
         # root must be the full path to the dataset folder (containing meta/, data/)
-        self.dataset = LeRobotDataset(
+        self.dataset = _open_lerobot_dataset(
+            LeRobotDataset,
+            dataset_path=dataset_path,
             repo_id=local_repo_id,
             root=str(dataset_path),
             episodes=episodes,
@@ -436,7 +487,9 @@ class AlohaAgilexDataset(Dataset):
         }
         episodes = _get_episodes_subset(data_config, self.dataset_meta)
         # root must be the full path to the dataset folder (containing meta/, data/)
-        self.dataset = LeRobotDataset(
+        self.dataset = _open_lerobot_dataset(
+            LeRobotDataset,
+            dataset_path=dataset_path,
             repo_id=local_repo_id,
             root=str(dataset_path),
             episodes=episodes,
