@@ -42,31 +42,71 @@ def _default_pi0_config_cls():
     return PI0Config
 
 
+def _lerobot_parquet_paths(data_dir: Path) -> List[Path]:
+    """Paths HuggingFace loads: same as lerobot ``load_nested_dataset`` (``data/chunk-*/*.parquet``)."""
+    paths = sorted(data_dir.glob("*/*.parquet"))
+    if paths:
+        return paths
+    return sorted(data_dir.rglob("*.parquet"))
+
+
 def _parquet_load_failure_hint(dataset_root: Path, max_report: int = 12) -> str:
-    """List empty or suspiciously small parquet files under data/ (common cause of ArrowInvalid)."""
+    """Diagnose ArrowInvalid: tiny files, then pyarrow.read_metadata on each file LeRobot actually loads."""
     data_dir = dataset_root / "data"
     if not data_dir.is_dir():
-        return f"No directory {data_dir} (expected LeRobot layout with data/*.parquet)."
-    bad: List[str] = []
-    for p in sorted(data_dir.rglob("*.parquet")):
+        return f"No directory {data_dir} (expected LeRobot layout with data/chunk-*/*.parquet)."
+
+    paths = _lerobot_parquet_paths(data_dir)
+    if not paths:
+        return (
+            f"No parquet under {data_dir} (tried data/*/*.parquet then rglob). "
+            "LeRobot v3 expects e.g. data/chunk-000/file-000.parquet."
+        )
+
+    bad_small: List[str] = []
+    for p in paths:
         try:
             sz = p.stat().st_size
         except OSError:
             continue
         if sz < 64:
-            bad.append(f"{p} ({sz} B)")
-        if len(bad) >= max_report:
+            bad_small.append(f"{p} ({sz} B)")
+        if len(bad_small) >= max_report:
             break
-    if bad:
+    if bad_small:
         return (
-            "Empty/tiny parquet files (likely corrupt or incomplete write): "
-            + "; ".join(bad)
-            + (f" ... ({max_report} max shown)" if len(bad) >= max_report else "")
+            "Empty/tiny parquet files: "
+            + "; ".join(bad_small)
+            + (f" ... (max {max_report})" if len(bad_small) >= max_report else "")
         )
+
+    try:
+        import pyarrow.parquet as pq
+    except ImportError:
+        return (
+            f"Checked {len(paths)} parquet path(s) under {data_dir}; none < 64 B. "
+            "Install pyarrow to enable per-file metadata validation in this hint."
+        )
+
+    corrupt: List[str] = []
+    for p in paths:
+        try:
+            pq.read_metadata(str(p))
+        except Exception as ex:
+            corrupt.append(f"{p}\n    -> {type(ex).__name__}: {ex}")
+            if len(corrupt) >= max_report:
+                break
+    if corrupt:
+        return (
+            f"pyarrow cannot read Parquet metadata ({len(corrupt)} file(s), same order as HF loads):\n"
+            + "\n".join(corrupt)
+        )
+
     return (
-        "No empty/tiny parquet found under data/; file may be truncated mid-write or cache corrupted. "
-        "Try: find bad files with `find <root>/data -name '*.parquet' -size 0`, "
-        "re-export the dataset, or clear HF/datasets cache and retry."
+        f"All {len(paths)} parquet file(s) under {data_dir} passed pyarrow.read_metadata. "
+        "Failure may be from HuggingFace `datasets` mmap/stream handling or version skew. "
+        "Try: pip install -U 'datasets>=3' 'pyarrow>=15' (or match lerobot pins), "
+        "unset/clear HF_DATASETS_CACHE, then retry."
     )
 
 

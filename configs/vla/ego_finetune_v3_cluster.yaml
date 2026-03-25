@@ -11,9 +11,7 @@ data:
   # Prefer a YAML list of LeRobot roots (one folder per dataset). A single string still works; comma-separated strings in one entry are split.
   train_path:
     - /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/database_lerobot_00_v30
-    - /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/database_lerobot_01_v30
     - /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/database_lerobot_02_v30
-    - /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/database_lerobot_03_v30
   # Optional validation root(s); list or single string. Requires train.use_ema, train.eval_frequency > 0.
   val_path:
     - /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/database_lerobot_04_v30
