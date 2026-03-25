@@ -8,7 +8,7 @@ model:
 data:
   datasets_type: vla
   data_name: robotwin_example
-  train_path: /home/ss-oss1/data/dataset/egocentric/training_egocentric/retarget_lerobot/database_lerobot_00_v30/
+  train_path: /home/ss-oss1/data/user/yuqi/data/database_lerobot_00_v30/
   num_workers: 16
   norm_type: bounds_99_woclip
   norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json #
@@ -19,7 +19,7 @@ data:
   dataset_init_main_process_first: true
 
 train:
-  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_test_local_single_process_v3
+  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_test_local_yuqi_v3
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
