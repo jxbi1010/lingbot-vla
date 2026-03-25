@@ -8,7 +8,7 @@ model:
 data:
   datasets_type: vla
   data_name: robotwin_example
-  train_path: /home/ss-oss1/data/user/yuqi/data/disk-1_Arrange_the_number_7_v30/
+  train_path: /home/ss-oss1/data/user/yuqi/data/cobot_magic_raw_lerobot/disk-1_Arrange_the_number_7_v30/
   num_workers: 16
   norm_type: bounds_99_woclip
   norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json #
