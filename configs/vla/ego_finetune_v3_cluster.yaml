@@ -53,5 +53,5 @@ train:
   enable_resume: true
   # Validation (EMA model, eval mode): set use_ema true, val_path, then eval_frequency > 0.
   use_ema: true
-  eval_frequency: 1000
+  eval_frequency: 500
   eval_steps: 50
