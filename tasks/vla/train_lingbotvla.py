@@ -77,6 +77,86 @@ def _val_dataset_pickle_path(train_cache_path: str) -> str:
     return f"{base}_val{ext if ext else '.pkl'}"
 
 
+def _vla_cache_meta_path(cache_path: str) -> str:
+    return f"{cache_path}.meta.json"
+
+
+def _train_dataset_cache_fingerprint(args: "Arguments", use_depth_align: bool) -> Dict[str, Any]:
+    """JSON-serializable dict; must change when train dataset construction inputs change."""
+    eff_ep, eff_chunk = resolve_vla_subset_fields(args.data, for_validation=False)
+    return {
+        "kind": "vla_train",
+        "version": 1,
+        "data_name": args.data.data_name,
+        "train_path": list(args.data.train_path),
+        "episode_subset": eff_ep,
+        "chunk_subset": eff_chunk,
+        "verify_timestamps_sync": args.data.verify_timestamps_sync,
+        "norm_stats_file": args.data.norm_stats_file,
+        "norm_type": args.data.norm_type,
+        "img_size": args.data.img_size,
+        "chunk_size": args.train.chunk_size,
+        "use_depth_align": use_depth_align,
+        "tokenizer_path": args.model.tokenizer_path,
+    }
+
+
+def _val_dataset_cache_fingerprint(args: "Arguments", use_depth_align: bool) -> Dict[str, Any]:
+    eff_ep, eff_chunk = resolve_vla_subset_fields(args.data, for_validation=True)
+    if not args.data.val_path:
+        raise ValueError("val cache fingerprint requires data.val_path")
+    return {
+        "kind": "vla_val",
+        "version": 1,
+        "data_name": args.data.data_name,
+        "val_path": list(args.data.val_path),
+        "episode_subset": eff_ep,
+        "chunk_subset": eff_chunk,
+        "verify_timestamps_sync": args.data.verify_timestamps_sync,
+        "norm_stats_file": args.data.norm_stats_file,
+        "norm_type": args.data.norm_type,
+        "img_size": args.data.img_size,
+        "chunk_size": args.train.chunk_size,
+        "use_depth_align": use_depth_align,
+        "tokenizer_path": args.model.tokenizer_path,
+    }
+
+
+def _vla_cache_is_valid(cache_path: str, fingerprint: Dict[str, Any]) -> bool:
+    """True if pickle and sidecar meta exist and meta matches the requested fingerprint."""
+    meta_path = _vla_cache_meta_path(cache_path)
+    if not os.path.isfile(cache_path) or not os.path.isfile(meta_path):
+        return False
+    try:
+        with open(meta_path, encoding="utf-8") as f:
+            stored = json.load(f)
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError):
+        return False
+    return stored == fingerprint
+
+
+def _write_vla_cache_meta(cache_path: str, fingerprint: Dict[str, Any]) -> None:
+    meta_path = _vla_cache_meta_path(cache_path)
+    parent = os.path.dirname(meta_path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+    tmp_path = meta_path + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(fingerprint, f, indent=2, sort_keys=True)
+    os.replace(tmp_path, meta_path)
+
+
+def _remove_vla_cache_and_meta(cache_path: str) -> None:
+    try:
+        os.remove(cache_path)
+    except OSError:
+        pass
+    try:
+        os.remove(_vla_cache_meta_path(cache_path))
+    except OSError:
+        pass
+
+
 def _pickle_dump_train_dataset(train_dataset: Any, cache_path: str) -> None:
     parent = os.path.dirname(cache_path)
     if parent:
@@ -195,24 +275,30 @@ def _build_vla_val_dataset_pickled(
             os.makedirs(cache_dir, exist_ok=True)
         dist.barrier()
         if args.train.global_rank == 0:
-            try:
-                os.remove(val_cache_path)
-            except OSError:
-                pass
-            logger.info_rank0(
-                f"Building VLA val dataset on rank 0; will pickle to {val_cache_path} (other ranks unpickle)."
-            )
-            val_dataset = _build_vla_dataset(
-                args,
-                model,
-                processor,
-                use_depth_align,
-                list(args.data.val_path),
-                compute_train_steps=False,
-                for_validation=True,
-            )
-            _pickle_dump_train_dataset(val_dataset, val_cache_path)
-            logger.info_rank0(f"Pickled val dataset to {val_cache_path}")
+            val_fp = _val_dataset_cache_fingerprint(args, use_depth_align)
+            if _vla_cache_is_valid(val_cache_path, val_fp):
+                logger.info_rank0(
+                    f"Val dataset cache hit (fingerprint match); loading {val_cache_path}"
+                )
+                with open(val_cache_path, "rb") as f:
+                    val_dataset = pickle.load(f)
+            else:
+                _remove_vla_cache_and_meta(val_cache_path)
+                logger.info_rank0(
+                    f"Building VLA val dataset on rank 0; will pickle to {val_cache_path} (other ranks unpickle)."
+                )
+                val_dataset = _build_vla_dataset(
+                    args,
+                    model,
+                    processor,
+                    use_depth_align,
+                    list(args.data.val_path),
+                    compute_train_steps=False,
+                    for_validation=True,
+                )
+                _pickle_dump_train_dataset(val_dataset, val_cache_path)
+                _write_vla_cache_meta(val_cache_path, val_fp)
+                logger.info_rank0(f"Pickled val dataset to {val_cache_path}")
         else:
             _wait_for_vla_pickle_cache(val_cache_path, args.train.global_rank)
         dist.barrier()
@@ -650,16 +736,25 @@ def main():
                 # rank 0 is still rebuilding, and hit the process-group timeout (e.g. 10 min).
                 dist.barrier()
                 if args.train.global_rank == 0:
-                    try:
-                        os.remove(cache_path)
-                    except OSError:
-                        pass
-                    logger.info_rank0(
-                        f"Building VLA dataset on rank 0; will pickle to {cache_path} (other ranks unpickle)."
-                    )
-                    train_dataset = _build_vla_train_dataset(args, model, processor, use_depth_align)
-                    _pickle_dump_train_dataset(train_dataset, cache_path)
-                    logger.info_rank0(f"Pickled train dataset to {cache_path}")
+                    train_fp = _train_dataset_cache_fingerprint(args, use_depth_align)
+                    if _vla_cache_is_valid(cache_path, train_fp):
+                        logger.info_rank0(
+                            f"Train dataset cache hit (fingerprint match); loading {cache_path}"
+                        )
+                        with open(cache_path, "rb") as f:
+                            train_dataset = pickle.load(f)
+                        args.train.compute_train_steps(
+                            args.data.max_seq_len, args.data.train_size, len(train_dataset)
+                        )
+                    else:
+                        _remove_vla_cache_and_meta(cache_path)
+                        logger.info_rank0(
+                            f"Building VLA dataset on rank 0; will pickle to {cache_path} (other ranks unpickle)."
+                        )
+                        train_dataset = _build_vla_train_dataset(args, model, processor, use_depth_align)
+                        _pickle_dump_train_dataset(train_dataset, cache_path)
+                        _write_vla_cache_meta(cache_path, train_fp)
+                        logger.info_rank0(f"Pickled train dataset to {cache_path}")
                 else:
                     _wait_for_vla_pickle_cache(cache_path, args.train.global_rank)
                 dist.barrier()
