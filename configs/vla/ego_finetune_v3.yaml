@@ -22,14 +22,14 @@ data:
   episode_subset: null
   train_chunk_subset: null
   val_chunk_subset: null
-  train_episode_subset: null #[0, 210000]
-  val_episode_subset: null #[210001, 211238]
+  train_episode_subset: [0, 210000]
+  val_episode_subset: [210001, 211238]
   verify_timestamps_sync: false
   # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
   dataset_init_main_process_first: true
 
 train:
-  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_test_local_yuqi_v3
+  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_yuqi_v3
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
@@ -37,7 +37,7 @@ train:
   use_compile: false
   use_wandb: true
   wandb_project: lingbot-vla-ego-pretrain
-  wandb_name: ego-pretrain-10k-video-test-16workers
+  wandb_name: ego-21w-1024-4e-4
   rmpad: false
   rmpad_with_pos_ids: false
   ulysses_parallel_size: 1
@@ -46,11 +46,11 @@ train:
   action_dim: 14
   max_action_dim: 75
   max_state_dim: 75
-  lr: 1.0e-4
+  lr: 4.0e-4
   lr_decay_style: constant
   num_train_epochs: 1
   micro_batch_size: 32
-  global_batch_size: 256
+  global_batch_size: 1024
   max_steps: 1000000
   ckpt_manager: dcp
   save_steps: 5000
@@ -60,6 +60,6 @@ train:
   # Validation: val_path + eval_frequency. Default validates training model (eval mode). use_ema is only for EMA weights/checkpoints.
   # Set eval_use_ema: true only if you need EMA metrics (requires use_ema; fragile under FSDP2).
   use_ema: true
-  eval_frequency: 0
-  eval_steps: 10
+  eval_frequency: 500
+  eval_steps: 5
   eval_use_ema: false
