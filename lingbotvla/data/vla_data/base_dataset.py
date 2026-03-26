@@ -163,22 +163,19 @@ def _get_episodes_subset(data_config, dataset_meta) -> Optional[List[int]]:
     """Return episode indices to load. episode_subset takes precedence over chunk_subset.
     episode_subset can be:
     - List of ints: [0, 1, 2, 3] for explicit indices
-    - String "0-100" for range 0 to 100 inclusive
-    - List [0, 100] for range 0 to 100 inclusive (2-element list = range)
+    - List [start, end] with two ints: inclusive episode range (same as range(start, end + 1))
     chunk_subset can be:
     - int: single chunk (e.g. 0 for chunk-000)
-    - List [start, end]: chunk range inclusive (e.g. [0, 99] for chunk-000 to chunk-099)
+    - List [start, end]: chunk index range inclusive (e.g. [0, 99] for chunk-000 to chunk-099)
+    - List [n]: single chunk (e.g. [0] for chunk-000)
     """
     episode_subset = getattr(data_config, "episode_subset", None)
-    if episode_subset is None:
-        pass
-    elif isinstance(episode_subset, str):
-        # "0-100" -> range 0 to 100 inclusive
-        parts = episode_subset.strip().split("-")
-        if len(parts) == 2:
-            start, end = int(parts[0].strip()), int(parts[1].strip())
-            return list(range(start, end + 1))
-    elif isinstance(episode_subset, (list, tuple)) and len(episode_subset) > 0:
+    if episode_subset is not None:
+        if not isinstance(episode_subset, (list, tuple)) or len(episode_subset) == 0:
+            raise TypeError(
+                "episode_subset must be a non-empty list: explicit indices [0, 1, 2] or inclusive range [start, end] "
+                f"(got {type(episode_subset).__name__}: {episode_subset!r})"
+            )
         if len(episode_subset) == 2 and all(isinstance(x, int) for x in episode_subset):
             # [0, 100] -> range 0 to 100 inclusive
             start, end = episode_subset[0], episode_subset[1]
@@ -189,7 +186,7 @@ def _get_episodes_subset(data_config, dataset_meta) -> Optional[List[int]]:
         return None
     chunks_size = dataset_meta.chunks_size
     total_episodes = dataset_meta.total_episodes
-    # Normalize: allow int (legacy) or list [0] / [0, 99]
+    # Normalize: int or list [0] / [0, 99]
     if isinstance(chunk_subset, (list, tuple)):
         if len(chunk_subset) == 2:
             # [0, 99] -> chunks 0 through 99 inclusive (chunk-000 to chunk-099)
@@ -199,12 +196,40 @@ def _get_episodes_subset(data_config, dataset_meta) -> Optional[List[int]]:
             start_chunk = end_chunk = int(chunk_subset[0])
         else:
             return None
+    elif isinstance(chunk_subset, int):
+        start_chunk = end_chunk = chunk_subset
     else:
-        # Single int (legacy)
-        start_chunk = end_chunk = int(chunk_subset)
+        raise TypeError(
+            "chunk_subset must be int (single chunk index), [n] for one chunk, or [start, end] inclusive "
+            f"(got {type(chunk_subset).__name__}: {chunk_subset!r})"
+        )
     start = start_chunk * chunks_size
     end = min((end_chunk + 1) * chunks_size, total_episodes)
     return list(range(start, end))
+
+
+def resolve_vla_subset_fields(data_config, *, for_validation: bool):
+    """Return ``(episode_subset, chunk_subset)`` for train vs val.
+
+    Split-specific ``train_episode_subset`` / ``val_episode_subset`` and
+    ``train_chunk_subset`` / ``val_chunk_subset`` override the shared
+    ``episode_subset`` / ``chunk_subset`` when set.
+    """
+    if for_validation:
+        ep = getattr(data_config, "val_episode_subset", None)
+        if ep is None:
+            ep = getattr(data_config, "episode_subset", None)
+        ch = getattr(data_config, "val_chunk_subset", None)
+        if ch is None:
+            ch = getattr(data_config, "chunk_subset", None)
+    else:
+        ep = getattr(data_config, "train_episode_subset", None)
+        if ep is None:
+            ep = getattr(data_config, "episode_subset", None)
+        ch = getattr(data_config, "train_chunk_subset", None)
+        if ch is None:
+            ch = getattr(data_config, "chunk_subset", None)
+    return ep, ch
 
 
 class VlaDataset(Dataset):

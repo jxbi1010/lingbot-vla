@@ -24,6 +24,7 @@ from lingbotvla.data import (
 )
 from torch.utils.data import ConcatDataset
 from lingbotvla.data.vla_data import liberoDataset, RobotwinDataset, CustomizedRobotwinDataset, AlohaAgilexDataset
+from lingbotvla.data.vla_data.base_dataset import resolve_vla_subset_fields
 from lingbotvla.distributed.offloading import build_activation_offloading_context
 from lingbotvla.distributed.parallel_state import get_parallel_state, init_parallel_state
 from lingbotvla.distributed.torch_parallelize import build_parallelize_model
@@ -93,12 +94,15 @@ def _build_vla_dataset(
     use_depth_align: bool,
     roots: List[str],
     compute_train_steps: bool,
+    *,
+    for_validation: bool = False,
 ) -> Any:
     """Build LeRobot-backed VLA dataset(s). ``roots`` is the normalized list of LeRobot dataset directories (from ``data.train_path`` or ``data.val_path``)."""
     paths = [p.strip() for p in roots if p.strip()]
     if not paths:
         raise ValueError("At least one dataset root path is required.")
-    data_cfg = replace(args.data, train_path=paths)
+    eff_ep, eff_chunk = resolve_vla_subset_fields(args.data, for_validation=for_validation)
+    data_cfg = replace(args.data, train_path=paths, episode_subset=eff_ep, chunk_subset=eff_chunk)
     data_cfg.chunk_size = args.train.chunk_size
     if args.data.data_name == "libero":
         if len(paths) != 1:
@@ -204,6 +208,7 @@ def _build_vla_val_dataset_pickled(
                 use_depth_align,
                 list(args.data.val_path),
                 compute_train_steps=False,
+                for_validation=True,
             )
             _pickle_dump_train_dataset(val_dataset, val_cache_path)
             logger.info_rank0(f"Pickled val dataset to {val_cache_path}")
@@ -224,6 +229,7 @@ def _build_vla_val_dataset_pickled(
             use_depth_align,
             list(args.data.val_path),
             compute_train_steps=False,
+            for_validation=True,
         )
     return val_dataset
 
@@ -239,7 +245,7 @@ def _run_vla_validation(
     morgbd_model: Any,
     model_fwd_context: Any,
 ) -> tuple[float, float, float]:
-    """Average loss over ``eval_steps`` val dataloader steps (per data-parallel rank), then all-reduce. ``eval_model`` should already be in eval mode (e.g. EMA)."""
+    """Average loss over ``eval_steps`` val dataloader steps (per data-parallel rank), then all-reduce. Calls ``eval_model.eval()``; pass ``model`` or ``model_ema``."""
     eval_model.eval()
     it = iter(val_dataloader)
     total_loss = 0.0
@@ -429,13 +435,19 @@ class MyTrainingArguments(TrainingArguments):
     eval_frequency: int = field(
         default=0,
         metadata={
-            "help": "Run validation every N global steps (0 = disabled). Requires train.use_ema and data.val_path."
+            "help": "Run validation every N global steps (0 = disabled). Requires data.val_path. Default is to validate the training model (see eval_use_ema)."
         },
     )
     eval_steps: int = field(
         default=50,
         metadata={
             "help": "Number of val dataloader steps per validation (per data-parallel rank), same notion as one training step."
+        },
+    )
+    eval_use_ema: bool = field(
+        default=False,
+        metadata={
+            "help": "If true, run validation on model_ema (requires use_ema). If false (default), validate the training model under eval() — avoids FSDP2/DTensor shard mismatches between twin models."
         },
     )
 
@@ -617,10 +629,8 @@ def main():
                 raise ValueError(
                     "train.eval_frequency > 0 is only supported for data.datasets_type=vla with dataloader_type=native."
                 )
-            if not args.train.use_ema:
-                raise ValueError(
-                    "train.eval_frequency > 0 requires train.use_ema=true; validation uses the EMA model under eval()."
-                )
+            if args.train.eval_use_ema and not args.train.use_ema:
+                raise ValueError("train.eval_use_ema=true requires train.use_ema=true.")
             if not args.data.val_path:
                 raise ValueError("train.eval_frequency > 0 requires non-empty data.val_path.")
             if args.train.eval_steps <= 0:
@@ -704,7 +714,8 @@ def main():
                     shuffle=False,
                 )
                 logger.info_rank0(
-                    f"Validation enabled: eval_frequency={args.train.eval_frequency}, eval_steps={args.train.eval_steps}"
+                    f"Validation enabled: eval_frequency={args.train.eval_frequency}, eval_steps={args.train.eval_steps}, "
+                    f"eval_use_ema={args.train.eval_use_ema}"
                 )
         else:
             raise NotImplementedError(
@@ -1049,20 +1060,30 @@ def main():
 
             if val_dataloader is not None and global_step % args.train.eval_frequency == 0:
                 helper.empty_cache()
-                val_loss, val_vla, val_depth = _run_vla_validation(
-                    model_ema,
-                    val_dataloader,
-                    args.train.eval_steps,
-                    args,
-                    use_depth_align,
-                    depth_model_type,
-                    moge_model,
-                    morgbd_model,
-                    model_fwd_context,
-                )
+                use_ema_for_val = args.train.eval_use_ema and model_ema is not None
+                eval_net = model_ema if use_ema_for_val else model
+                restore_train = not use_ema_for_val
+                if restore_train:
+                    model.eval()
+                try:
+                    val_loss, val_vla, val_depth = _run_vla_validation(
+                        eval_net,
+                        val_dataloader,
+                        args.train.eval_steps,
+                        args,
+                        use_depth_align,
+                        depth_model_type,
+                        moge_model,
+                        morgbd_model,
+                        model_fwd_context,
+                    )
+                finally:
+                    if restore_train:
+                        model.train()
                 dist.barrier()
+                src = "ema" if use_ema_for_val else "train"
                 logger.info_rank0(
-                    f"Validation @ step {global_step}: loss={val_loss:.4f}, vla_loss={val_vla:.4f}, depth_loss={val_depth:.4f}"
+                    f"Validation ({src}) @ step {global_step}: loss={val_loss:.4f}, vla_loss={val_vla:.4f}, depth_loss={val_depth:.4f}"
                 )
                 if args.train.global_rank == 0:
                     writer.add_scalar("validation/loss", val_loss, global_step)

@@ -40,6 +40,7 @@ import yaml
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
+from lingbotvla.data.vla_data.base_dataset import resolve_vla_subset_fields
 from lingbotvla.utils.arguments import normalize_lerobot_roots
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -96,6 +97,14 @@ def make_data_config(config: dict, overrides: dict):
     cfg.norm_type = data.get("norm_type", "bounds_99_woclip")
     cfg.chunk_subset = data.get("chunk_subset")
     cfg.episode_subset = data.get("episode_subset")
+    cfg.train_chunk_subset = data.get("train_chunk_subset")
+    cfg.val_chunk_subset = data.get("val_chunk_subset")
+    cfg.train_episode_subset = data.get("train_episode_subset")
+    cfg.val_episode_subset = data.get("val_episode_subset")
+
+    eff_ep, eff_chunk = resolve_vla_subset_fields(cfg, for_validation=False)
+    cfg.episode_subset = eff_ep
+    cfg.chunk_subset = eff_chunk
 
     return cfg
 

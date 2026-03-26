@@ -9,21 +9,25 @@ data:
   datasets_type: vla
   data_name: robotwin_example
   # Prefer a YAML list of LeRobot roots (one folder per dataset). A single string still works; comma-separated strings in one entry are split.
-  train_path:
-    - /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/database_lerobot_00_v30
-  # Optional validation root(s); list or single string. Requires train.use_ema, train.eval_frequency > 0.
-  val_path:
-    - /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/database_lerobot_00_v30
+  train_path: /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/lerobot_video_multiworker_test_v30
+  # Optional validation root(s); list or single string. Required when train.eval_frequency > 0.
+  val_path: /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/lerobot_video_multiworker_test_v30
   num_workers: 16
   norm_type: bounds_99_woclip
   norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json #
+
   chunk_subset: null  # # [0] = chunk-000,[0, 99] = chunk-000 to chunk-099 inclusive, etc. (set to null for full data)
   episode_subset: null # inclusive e.g.[0,99]
+  train_chunk_subset: null
+  val_chunk_subset: null
+  train_episode_subset: [0, 210000]
+  val_episode_subset: [210001, 211238]
+
   verify_timestamps_sync: false
   dataset_init_main_process_first: true # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
 
 train:
-  output_dir: /checkpoints/jianxin/output/ego_test_local_yuqi_v3
+  output_dir: /checkpoints/jianxin/output/ego_21w_v3
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
@@ -42,10 +46,10 @@ train:
   max_state_dim: 75
   lr: 4.0e-4
   lr_decay_style: constant
-  num_train_epochs: 10
+  num_train_epochs: 1
   micro_batch_size: 32
   global_batch_size: 1024
-  max_steps: 1000000
+  max_steps: 10000000
   ckpt_manager: dcp
   save_steps: 5000
   save_epochs: 1
@@ -54,4 +58,4 @@ train:
   # Validation (EMA model, eval mode): set use_ema true, val_path, then eval_frequency > 0.
   use_ema: true
   eval_frequency: 500
-  eval_steps: 50
+  eval_steps: 10

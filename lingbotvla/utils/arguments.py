@@ -258,11 +258,48 @@ class DataArguments:
     )
     chunk_subset: Optional[List[int]] = field(
         default=None,
-        metadata={"help": "If set, only load episodes from these chunks. Use [0] for single chunk, or [0, 99] for range chunk-000 to chunk-099 inclusive."},
+        metadata={
+            "help": (
+                "Limit which LeRobot data/chunk-* parquet groups to use (episodes are mapped from chunk index × chunks_size). "
+                "Use [0] for chunk-000 only, or [0, 99] for chunk-000 … chunk-099 inclusive (YAML may use a single int; it is coerced to a one-element list). "
+                "Ignored when the effective episode_subset for that split is set. "
+                "Per-split overrides: train_chunk_subset / val_chunk_subset (else this field)."
+            )
+        },
     )
     episode_subset: Optional[List[int]] = field(
         default=None,
-        metadata={"help": "If set, only load these episodes. Use [0,1,2,3] for explicit indices, or [0,100] for range 0-100 inclusive. Overrides chunk_subset."},
+        metadata={
+            "help": (
+                "Default subset for both train and val: global episode indices (overrides chunk_subset for that split). "
+                "Explicit indices [0, 1, 2] or inclusive two-int range [0, 100]. "
+                "Override per split with train_episode_subset / val_episode_subset."
+            )
+        },
+    )
+    train_chunk_subset: Optional[List[int]] = field(
+        default=None,
+        metadata={
+            "help": "Train only: same formats as chunk_subset. If null, use chunk_subset for the train dataset.",
+        },
+    )
+    val_chunk_subset: Optional[List[int]] = field(
+        default=None,
+        metadata={
+            "help": "Validation only: same formats as chunk_subset. If null, use chunk_subset for the val dataset.",
+        },
+    )
+    train_episode_subset: Optional[List[int]] = field(
+        default=None,
+        metadata={
+            "help": "Train only: same formats as episode_subset. If null, use episode_subset for the train dataset.",
+        },
+    )
+    val_episode_subset: Optional[List[int]] = field(
+        default=None,
+        metadata={
+            "help": "Validation only: same formats as episode_subset. If null, use episode_subset for the val dataset.",
+        },
     )
     task_subset: Optional[List[Union[int, str]]] = field(
         default=None,
@@ -273,6 +310,11 @@ class DataArguments:
         self.train_path = normalize_lerobot_roots(self.train_path)
         if not self.train_path:
             raise ValueError("data.train_path must contain at least one non-empty path")
+        # parse_args only supports Optional[List[int]] for chunk fields (not Union[int, List]); coerce legacy int.
+        for _chunk_field in ("chunk_subset", "train_chunk_subset", "val_chunk_subset"):
+            v = getattr(self, _chunk_field)
+            if isinstance(v, int):
+                setattr(self, _chunk_field, [v])
         if self.text_keys is None:
             if self.data_type == "plaintext":
                 self.text_keys = "content_split"
