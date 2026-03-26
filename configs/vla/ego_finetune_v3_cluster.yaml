@@ -25,6 +25,8 @@ data:
 
   verify_timestamps_sync: false
   dataset_init_main_process_first: true # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
+  # Multi-node: must be on storage visible to every rank (not /dev/shm). Val cache is sibling: same path with _val before .pkl (e.g. ..._val.pkl).
+  dataset_pickle_cache_path: /checkpoints/jianxin/ego21w_dataset_cache.pkl
 
 train:
   output_dir: /checkpoints/jianxin/output/ego_21w_yuqi_v3
