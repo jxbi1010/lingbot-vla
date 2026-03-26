@@ -21,7 +21,8 @@ data:
   train_chunk_subset: null
   val_chunk_subset: null
   train_episode_subset: [0, 210000]
-  val_episode_subset: [210001, 211238]
+  # Inclusive; max episode index is total_episodes - 1 (e.g. 211237 when total_episodes is 211238).
+  val_episode_subset: [210001, 211237]
 
   verify_timestamps_sync: false
   dataset_init_main_process_first: true # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
