@@ -1,5 +1,7 @@
 import json
 import pickle
+import threading
+from contextlib import contextmanager
 from copy import deepcopy
 import os
 import re
@@ -157,6 +159,26 @@ def _remove_vla_cache_and_meta(cache_path: str) -> None:
         pass
 
 
+@contextmanager
+def _rank0_long_build_heartbeat(label: str, interval_s: float = 120.0):
+    """Periodic INFO on rank 0 while a long LeRobot dataset build runs (no NCCL; other ranks poll the pickle path)."""
+    stop = threading.Event()
+    t0 = time.monotonic()
+
+    def _run():
+        while not stop.wait(interval_s):
+            elapsed = int(time.monotonic() - t0)
+            logger.info_rank0(f"{label} still in progress ({elapsed}s elapsed)...")
+
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+    try:
+        yield
+    finally:
+        stop.set()
+        t.join(timeout=2.0)
+
+
 def _pickle_dump_train_dataset(train_dataset: Any, cache_path: str) -> None:
     parent = os.path.dirname(cache_path)
     if parent:
@@ -287,16 +309,17 @@ def _build_vla_val_dataset_pickled(
                 logger.info_rank0(
                     f"Building VLA val dataset on rank 0; will pickle to {val_cache_path} (other ranks unpickle)."
                 )
-                val_dataset = _build_vla_dataset(
-                    args,
-                    model,
-                    processor,
-                    use_depth_align,
-                    list(args.data.val_path),
-                    compute_train_steps=False,
-                    for_validation=True,
-                )
-                _pickle_dump_train_dataset(val_dataset, val_cache_path)
+                with _rank0_long_build_heartbeat("Building VLA val dataset on rank 0"):
+                    val_dataset = _build_vla_dataset(
+                        args,
+                        model,
+                        processor,
+                        use_depth_align,
+                        list(args.data.val_path),
+                        compute_train_steps=False,
+                        for_validation=True,
+                    )
+                    _pickle_dump_train_dataset(val_dataset, val_cache_path)
                 _write_vla_cache_meta(val_cache_path, val_fp)
                 logger.info_rank0(f"Pickled val dataset to {val_cache_path}")
         else:
@@ -734,6 +757,8 @@ def main():
                 # Sync before rank 0 deletes the pickle. Otherwise non-zero ranks can see a stale
                 # cache file, exit _wait_for_vla_pickle_cache immediately, hit dist.barrier while
                 # rank 0 is still rebuilding, and hit the process-group timeout (e.g. 10 min).
+                # Requires all ranks to reach here; if this barrier fails with NCCL "connection refused",
+                # fix MASTER_ADDR/PORT, pod networking, and NCCL env — not "rank 0 still building".
                 dist.barrier()
                 if args.train.global_rank == 0:
                     train_fp = _train_dataset_cache_fingerprint(args, use_depth_align)
@@ -751,8 +776,9 @@ def main():
                         logger.info_rank0(
                             f"Building VLA dataset on rank 0; will pickle to {cache_path} (other ranks unpickle)."
                         )
-                        train_dataset = _build_vla_train_dataset(args, model, processor, use_depth_align)
-                        _pickle_dump_train_dataset(train_dataset, cache_path)
+                        with _rank0_long_build_heartbeat("Building VLA train dataset on rank 0"):
+                            train_dataset = _build_vla_train_dataset(args, model, processor, use_depth_align)
+                            _pickle_dump_train_dataset(train_dataset, cache_path)
                         _write_vla_cache_meta(cache_path, train_fp)
                         logger.info_rank0(f"Pickled train dataset to {cache_path}")
                 else:
