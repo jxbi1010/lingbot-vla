@@ -193,6 +193,7 @@ def _build_vla_val_dataset_pickled(
         cache_dir = os.path.dirname(val_cache_path)
         if cache_dir:
             os.makedirs(cache_dir, exist_ok=True)
+        dist.barrier()
         if args.train.global_rank == 0:
             try:
                 os.remove(val_cache_path)
@@ -644,6 +645,10 @@ def main():
                 cache_dir = os.path.dirname(cache_path)
                 if cache_dir:
                     os.makedirs(cache_dir, exist_ok=True)
+                # Sync before rank 0 deletes the pickle. Otherwise non-zero ranks can see a stale
+                # cache file, exit _wait_for_vla_pickle_cache immediately, hit dist.barrier while
+                # rank 0 is still rebuilding, and hit the process-group timeout (e.g. 10 min).
+                dist.barrier()
                 if args.train.global_rank == 0:
                     try:
                         os.remove(cache_path)
