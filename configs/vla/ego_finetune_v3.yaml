@@ -28,7 +28,7 @@ data:
   verify_timestamps_sync: false
   # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
   dataset_init_main_process_first: true
-  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/lerobot_video_multiworker_test_v30_dataset_cache.pkl
+  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/pickle/lerobot_video_multiworker_test_v30.pkl
 
 train:
   output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_v3_run1024_local

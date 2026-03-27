@@ -28,7 +28,7 @@ data:
   # Multi-GPU: rank 0 builds once and pickles; other ranks unpickle. Required to avoid parallel HF datasets cache races (JSONDecodeError on empty dataset_info.json).
   dataset_init_main_process_first: true
   # Multi-node: must be on storage visible to every rank (not /dev/shm). Val cache is sibling: same path with _val before .pkl (e.g. ..._val.pkl).
-  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/ego21w_dataset_cache.pkl
+  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/pickle/lerobot_video_multiworker_test_v30.pkl
 
 train:
   output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_yuqi_v3

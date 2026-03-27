@@ -23,7 +23,7 @@ data:
   
   verify_timestamps_sync: false
   dataset_init_main_process_first: true
-  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/pickle/robot_test_dataset_cache.pkl
+  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/pickle/database_lerobot_00_v30.pkl
 
 train:
   output_dir: /home/ss-oss1/checkpoints/jianxin/output/robot_test_v3_00
