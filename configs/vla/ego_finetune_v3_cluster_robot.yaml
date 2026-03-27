@@ -40,7 +40,7 @@ train:
   ulysses_parallel_size: 1
   freeze_vision_encoder: false
   tokenizer_max_length: 24
-  action_dim: 16
+  action_dim: 14
   max_action_dim: 75
   max_state_dim: 75
   lr: 1.0e-4
