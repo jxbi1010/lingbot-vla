@@ -27,7 +27,8 @@ data:
   val_episode_subset: [210001, 211237]
   verify_timestamps_sync: false
   # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
-  dataset_init_main_process_first: true
+  dataset_init_main_process_first: false
+  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/robot_test_dataset_cache.pkl
 
 train:
   output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_yuqi_v3
