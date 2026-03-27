@@ -26,15 +26,26 @@ else
   NPROC_PER_NODE=$(echo $CUDA_VISIBLE_DEVICES | tr ',' '\n' | wc -l)
 fi
 echo "Using NPROC_PER_NODE=$NPROC_PER_NODE GPUs"
-# PyTorchJob / torchrun inject PET_NNODES and PET_NODE_RANK; without them every pod thinks NNODES=1.
-if [ -n "${PET_NNODES:-}" ]; then
-  NNODES=$PET_NNODES
-  NODE_RANK=$PET_NODE_RANK
+
+# --- Distributed Setup ---
+# Arena/Kubeflow PyTorchJob injects: WORLD_SIZE, RANK, MASTER_ADDR, MASTER_PORT
+if [ -n "${WORLD_SIZE:-}" ]; then
+  NNODES=${WORLD_SIZE}
+  NODE_RANK=${RANK}
 else
-  NNODES=${NNODES:-1}
-  NODE_RANK=${NODE_RANK:-0}
+  # Fallback for local or PET-style envs
+  NNODES=${PET_NNODES:-${NNODES:-1}}
+  NODE_RANK=${PET_NODE_RANK:-${NODE_RANK:-0}}
 fi
-echo "Distributed: NNODES=$NNODES NODE_RANK=$NODE_RANK"
+
+# Ensure MASTER_ADDR is not localhost if running multi-node
+if [ "$NNODES" -gt 1 ] && [ "$MASTER_ADDR" = "0.0.0.0" ]; then
+    echo "Error: MASTER_ADDR is 0.0.0.0 but NNODES > 1. Check Arena env."
+    # Usually Arena handles this, but safety first.
+fi
+
+echo "Distributed Config: NNODES=$NNODES, NODE_RANK=$NODE_RANK, MASTER_ADDR=$MASTER_ADDR"
+
 NPROC_PER_NODE=${NPROC_PER_NODE:=$NPROC_PER_NODE}
 MASTER_ADDR=${MASTER_ADDR:=0.0.0.0}
 MASTER_PORT=${MASTER_PORT:=62500}
