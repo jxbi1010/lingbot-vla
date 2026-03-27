@@ -29,7 +29,7 @@ data:
   dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/ego_00_test_dataset_cache.pkl
 
 train:
-  output_dir: /checkpoints/jianxin/output/ego_00_test_yuqi_v3
+  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_00_test_yuqi_v3
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
