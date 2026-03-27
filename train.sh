@@ -26,9 +26,16 @@ else
   NPROC_PER_NODE=$(echo $CUDA_VISIBLE_DEVICES | tr ',' '\n' | wc -l)
 fi
 echo "Using NPROC_PER_NODE=$NPROC_PER_NODE GPUs"
-NNODES=${NNODES:=1}
+# PyTorchJob / torchrun inject PET_NNODES and PET_NODE_RANK; without them every pod thinks NNODES=1.
+if [ -n "${PET_NNODES:-}" ]; then
+  NNODES=$PET_NNODES
+  NODE_RANK=$PET_NODE_RANK
+else
+  NNODES=${NNODES:-1}
+  NODE_RANK=${NODE_RANK:-0}
+fi
+echo "Distributed: NNODES=$NNODES NODE_RANK=$NODE_RANK"
 NPROC_PER_NODE=${NPROC_PER_NODE:=$NPROC_PER_NODE}
-NODE_RANK=${NODE_RANK:=0}
 MASTER_ADDR=${MASTER_ADDR:=0.0.0.0}
 MASTER_PORT=${MASTER_PORT:=62500}
 
