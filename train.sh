@@ -3,10 +3,10 @@
 set -x
 
 BASE_CACHE="${BASE_CACHE:-/home/ss-oss1/checkpoints/jianxin/cache}"
-mkdir -p "${BASE_CACHE}/datasets" "${BASE_CACHE}/torch_inductor" "${BASE_CACHE}/triton" "${BASE_CACHE}/wandb"
+mkdir -p "${BASE_CACHE}hf_datasets" "${BASE_CACHE}/torch_inductor" "${BASE_CACHE}/triton" "${BASE_CACHE}/wandb"
 
 export HF_HOME="${BASE_CACHE}"
-export HF_DATASETS_CACHE="${BASE_CACHE}/datasets"
+export HF_DATASETS_CACHE="${BASE_CACHE}/hf_datasets"
 
 export USER=jianxin
 export LOGNAME=jianxin

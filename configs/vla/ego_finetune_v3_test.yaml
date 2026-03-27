@@ -22,8 +22,8 @@ data:
   val_episode_subset: [24001,25139]
   
   verify_timestamps_sync: false
-  dataset_init_main_process_first: false
-  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/robot_test_dataset_cache.pkl
+  dataset_init_main_process_first: true
+  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/pickle/robot_test_dataset_cache.pkl
 
 train:
   output_dir: /home/ss-oss1/checkpoints/jianxin/output/robot_test_v3_00
@@ -34,7 +34,7 @@ train:
   use_compile: false
   use_wandb: true
   wandb_project: lingbot-vla-ego-pretrain
-  wandb_name: ego-pretrain-10k-video-test-16workers
+  wandb_name: ego-pretrain-10k-video-test
   rmpad: false
   rmpad_with_pos_ids: false
   ulysses_parallel_size: 1

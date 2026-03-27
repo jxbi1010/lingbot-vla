@@ -31,7 +31,7 @@ data:
   dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/lerobot_video_multiworker_test_v30_dataset_cache.pkl
 
 train:
-  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_v3_run1024
+  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_v3_run1024_local
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
@@ -39,7 +39,7 @@ train:
   use_compile: false
   use_wandb: true
   wandb_project: lingbot-vla-ego-pretrain
-  wandb_name: ego-21w-1024-4e-4
+  wandb_name: ego-21w-1024-4e-4-local
   rmpad: false
   rmpad_with_pos_ids: false
   ulysses_parallel_size: 1
@@ -48,20 +48,20 @@ train:
   action_dim: 14
   max_action_dim: 75
   max_state_dim: 75
-  lr: 1.0e-4
+  lr: 4.0e-4
   lr_decay_style: constant
   num_train_epochs: 1
   micro_batch_size: 32
-  global_batch_size: 256
+  global_batch_size: 1024
   max_steps: 1000000
   ckpt_manager: dcp
-  save_steps: 5000
+  save_steps: 500
   save_epochs: 1
   enable_fp32: true
   enable_resume: true
   # Validation: val_path + eval_frequency. Default validates training model (eval mode). use_ema is only for EMA weights/checkpoints.
   # Set eval_use_ema: true only if you need EMA metrics (requires use_ema; fragile under FSDP2).
   use_ema: true
-  eval_frequency: 500
-  eval_steps: 5
+  eval_frequency: 100
+  eval_steps: 2
   eval_use_ema: false
