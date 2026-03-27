@@ -3,7 +3,7 @@
 set -x
 
 export HF_HOME="/home/ss-oss1/checkpoints/jianxin/cache"
-export HF_DATASETS_CACHE="/home/ss-oss1/checkpoints/jianxin/cache/datasets"
+export HF_DATASETS_CACHE="/home/ss-oss1/checkpoints/jianxin/cache/hf_datasets"
 
 export TOKENIZERS_PARALLELISM=false
 if [ -z "$CUDA_VISIBLE_DEVICES" ]; then
