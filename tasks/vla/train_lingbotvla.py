@@ -58,6 +58,38 @@ logger = helper.create_logger(__name__)
 # except Exception as e:
 #     logger.info_rank0(f"Failed to import aistudio_tracking: {repr(e)}.")
 
+
+def _configure_hf_datasets_cache_env() -> None:
+    """Point HuggingFace ``datasets`` cache at node-local storage when running under torchrun.
+
+    ``Dataset.from_parquet`` uses ``filelock`` under ``HF_DATASETS_CACHE``. A shared NFS path
+    (common via ``HF_DATASETS_CACHE=$BASE_CACHE/datasets``) often breaks with
+    ``JSONDecodeError`` (empty cache json) or ``FileNotFoundError`` on ``fchmod`` under the lock.
+
+    Set ``HF_DATASETS_CACHE_RESPECT=1`` to keep the environment unchanged.
+    ``HF_DATASETS_CACHE_LOCAL_ROOT`` overrides the parent dir (default ``/tmp``).
+    """
+    if os.environ.get("HF_DATASETS_CACHE_RESPECT", "").lower() in ("1", "true", "yes"):
+        return
+    rank = os.environ.get("RANK")
+    if rank is None:
+        return
+    try:
+        import socket
+
+        host = os.environ.get("HOSTNAME") or os.environ.get("HOST") or socket.gethostname()
+    except Exception:
+        host = "local"
+    root = os.environ.get("HF_DATASETS_CACHE_LOCAL_ROOT", "/tmp")
+    new_cache = os.path.join(root, f"hf_datasets_{host}_rank{rank}")
+    os.makedirs(new_cache, exist_ok=True)
+    os.environ["HF_DATASETS_CACHE"] = new_cache
+    print(
+        f"[HF] HF_DATASETS_CACHE={new_cache} (node-local; export HF_DATASETS_CACHE_RESPECT=1 to disable)",
+        flush=True,
+    )
+
+
 def _wait_for_vla_pickle_cache(cache_path: str, global_rank: int) -> None:
     """Non-zero ranks poll until rank 0 writes the pickle (avoid long NCCL barrier during rank-0 build)."""
     t0 = time.time()
@@ -634,6 +666,7 @@ class Arguments:
 
 
 def main():
+    _configure_hf_datasets_cache_env()
     args = parse_args(Arguments)
     logger.info(f"Process rank: {args.train.global_rank}, world size: {args.train.world_size}")
     logger.info_rank0(json.dumps(asdict(args), indent=2))
