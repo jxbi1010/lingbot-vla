@@ -24,9 +24,9 @@ data:
   val_episode_subset: [24001,25139]
 
   verify_timestamps_sync: false
-  dataset_init_main_process_first: false # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
+  dataset_init_main_process_first: true # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
   # Multi-node: must be on storage visible to every rank (not /dev/shm). Val cache is sibling: same path with _val before .pkl (e.g. ..._val.pkl).
-  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/ego_00_test_dataset_cache.pkl
+  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/database_lerobot_00_v30_dataset_cache.pkl
 
 train:
   output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_00_test_yuqi_v3_00

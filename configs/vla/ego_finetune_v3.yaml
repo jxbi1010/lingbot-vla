@@ -27,11 +27,11 @@ data:
   val_episode_subset: [210001, 211237]
   verify_timestamps_sync: false
   # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
-  dataset_init_main_process_first: false
-  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/robot_test_dataset_cache.pkl
+  dataset_init_main_process_first: true
+  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/lerobot_video_multiworker_test_v30_dataset_cache.pkl
 
 train:
-  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_yuqi_v3
+  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_v3_run1024
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
@@ -48,11 +48,11 @@ train:
   action_dim: 14
   max_action_dim: 75
   max_state_dim: 75
-  lr: 4.0e-4
+  lr: 1.0e-4
   lr_decay_style: constant
   num_train_epochs: 1
   micro_batch_size: 32
-  global_batch_size: 1024
+  global_batch_size: 256
   max_steps: 1000000
   ckpt_manager: dcp
   save_steps: 5000
