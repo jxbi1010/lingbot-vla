@@ -387,19 +387,26 @@ def _run_vla_validation(
     moge_model: Any,
     morgbd_model: Any,
     model_fwd_context: Any,
+    val_iter: List,
 ) -> tuple[float, float, float]:
-    """Average loss over ``eval_steps`` val dataloader steps (per data-parallel rank), then all-reduce. Calls ``eval_model.eval()``; pass ``model`` or ``model_ema``."""
+    """Average loss over ``eval_steps`` val dataloader steps (per data-parallel rank), then all-reduce. Calls ``eval_model.eval()``; pass ``model`` or ``model_ema``.
+
+    ``val_iter`` must be a one-element list ``[iterator | None]`` that persists
+    across calls so the same DataLoader worker processes are reused and their
+    prefetch buffers are not abandoned (which would steadily grow CPU RAM).
+    """
     eval_model.eval()
-    it = iter(val_dataloader)
+    if val_iter[0] is None:
+        val_iter[0] = iter(val_dataloader)
     total_loss = 0.0
     total_vla = 0.0
     total_depth = 0.0
     for _ in range(eval_steps):
         try:
-            micro_batches: List[Dict[str, Any]] = next(it)
+            micro_batches: List[Dict[str, Any]] = next(val_iter[0])
         except StopIteration:
-            it = iter(val_dataloader)
-            micro_batches = next(it)
+            val_iter[0] = iter(val_dataloader)
+            micro_batches = next(val_iter[0])
         n_micro = len(micro_batches)
         for micro_batch in micro_batches:
             micro_batch.pop("rep_id", None)
@@ -429,9 +436,12 @@ def _run_vla_validation(
             total_vla += vla_loss.item()
             if not (isinstance(depth_loss, int) or isinstance(depth_loss, float)):
                 total_depth += depth_loss.item()
+            del micro_batch, depth_targets
+        del micro_batches
     total_loss /= eval_steps
     total_vla /= eval_steps
     total_depth /= eval_steps
+    gc.collect()
     total_loss, total_vla, total_depth = all_reduce(
         (total_loss, total_vla, total_depth), group=get_parallel_state().fsdp_group
     )
@@ -767,6 +777,7 @@ def main():
             data_collate_fn.append(OmniDataCollatorWithPadding())
 
     val_dataloader = None
+    val_iter = [None]
     if args.data.dataloader_type == "native":
         if args.train.eval_frequency > 0:
             if args.data.datasets_type != "vla":
@@ -873,6 +884,7 @@ def main():
                     prefetch_factor=args.data.prefetch_factor if args.data.num_workers > 0 else None,
                     shuffle=False,
                 )
+                val_iter = [None]  # persistent iterator; avoids re-spawning DataLoader workers each validation run
                 logger.info_rank0(
                     f"Validation enabled: eval_frequency={args.train.eval_frequency}, eval_steps={args.train.eval_steps}, "
                     f"eval_use_ema={args.train.eval_use_ema}"
@@ -1253,6 +1265,7 @@ def main():
                         moge_model,
                         morgbd_model,
                         model_fwd_context,
+                        val_iter,
                     )
                 finally:
                     if restore_train:

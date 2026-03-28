@@ -50,10 +50,10 @@ NPROC_PER_NODE=${NPROC_PER_NODE:=$NPROC_PER_NODE}
 MASTER_ADDR=${MASTER_ADDR:=0.0.0.0}
 MASTER_PORT=${MASTER_PORT:=62500}
 
-export NCCL_DEBUG=INFO                                                                                                
-export NCCL_DEBUG_SUBSYS=NET  
-export NCCL_IB_DISABLE=0 
-export NCCL_NET_GDR_LEVEL=2
+# export NCCL_DEBUG=INFO                                                                                                
+# export NCCL_DEBUG_SUBSYS=NET  
+# export NCCL_IB_DISABLE=0 
+# export NCCL_NET_GDR_LEVEL=2
 
 
 torchrun --nnodes=$NNODES --nproc-per-node $NPROC_PER_NODE --node-rank $NODE_RANK \
