@@ -50,6 +50,8 @@ NPROC_PER_NODE=${NPROC_PER_NODE:=$NPROC_PER_NODE}
 MASTER_ADDR=${MASTER_ADDR:=0.0.0.0}
 MASTER_PORT=${MASTER_PORT:=62500}
 
+export NCCL_DEBUG=INFO                                                                                                
+export NCCL_DEBUG_SUBSYS=NET  
 
 torchrun --nnodes=$NNODES --nproc-per-node $NPROC_PER_NODE --node-rank $NODE_RANK \
   --master-addr=$MASTER_ADDR --master-port=$MASTER_PORT $@ 2>&1 | tee log.txt

@@ -3,6 +3,9 @@
 # other train fields come from the base file. Merge: nested `train` is merged over base.
 _base_: ego_finetune_v3.yaml
 
+data:
+  dataset_init_main_process_first: false
+  
 train:
   output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_v3_batch1024_cluster
   wandb_name: ego-21w-1024-multinodes
