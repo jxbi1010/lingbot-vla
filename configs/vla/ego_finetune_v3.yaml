@@ -62,6 +62,6 @@ train:
   # Validation: val_path + eval_frequency. Default validates training model (eval mode). use_ema is only for EMA weights/checkpoints.
   # Set eval_use_ema: true only if you need EMA metrics (requires use_ema; fragile under FSDP2).
   use_ema: true
-  eval_frequency: 100
+  eval_frequency: 0
   eval_steps: 2
   eval_use_ema: false

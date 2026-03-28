@@ -18,7 +18,7 @@ data:
   episode_subset: null # inclusive e.g.[0,99]
   train_chunk_subset: null
   val_chunk_subset: null
-  train_episode_subset: [0,1000]
+  train_episode_subset: [0,24000]
   val_episode_subset: [24001,25139]
   
   verify_timestamps_sync: false
