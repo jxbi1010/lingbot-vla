@@ -22,7 +22,7 @@ data:
   val_episode_subset: [24001,25139]
   
   verify_timestamps_sync: false
-  dataset_init_main_process_first: false
+  dataset_init_main_process_first: true
   dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/pickle/robot_test_dataset_cache.pkl
 
 train:
@@ -54,7 +54,7 @@ train:
   save_epochs: 1
   enable_fp32: true
   enable_resume: true
-  empty_cache_steps: 20
+  empty_cache_steps: 200
   # Validation (EMA model, eval mode): set use_ema true, val_path, then eval_frequency > 0.
   use_ema: true
   eval_frequency: 0

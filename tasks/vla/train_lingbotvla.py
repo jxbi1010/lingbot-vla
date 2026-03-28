@@ -9,6 +9,7 @@ import time
 from dataclasses import asdict, dataclass, field, replace
 from functools import partial
 from io import BytesIO
+import gc
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Literal
 from collections import defaultdict
 import datetime
@@ -1129,6 +1130,21 @@ def main():
             optimizer.step()
             lr_scheduler.step()
             optimizer.zero_grad()
+            if global_step % 10 == 0:
+
+                num_collected = gc.collect()
+                uncollectable_count = len(gc.garbage)
+                
+                import psutil
+                process = psutil.Process(os.getpid())
+                mem_info = process.memory_info().rss / (1024 ** 3)  # 转换为 GB
+
+                logger.info_rank0(
+                    f"[Memory Debug] Step: {global_step} | "
+                    f"Collected: {num_collected} objects | "
+                    f"Uncollectable (gc.garbage): {uncollectable_count} | "
+                    f"CPU RSS: {mem_info:.2f} GB"
+                )
             if hasattr(grad_norm, "full_tensor"):
                 grad_norm = grad_norm.full_tensor().item()
 
