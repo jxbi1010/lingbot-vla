@@ -1138,6 +1138,8 @@ def main():
                 ema_update(model_ema, model, args.train.ema_rate)
             torch.cuda.synchronize()
             delta_time = time.time() - start_time
+            # Clears batch_seqlens / image_seqlens and applies empty_cache_steps; without this, add() leaks CPU RAM.
+            environ_meter.step(delta_time, global_step)
             lr = max(lr_scheduler.get_last_lr())
             data_loader_tqdm.update()
             logger.info_rank0(

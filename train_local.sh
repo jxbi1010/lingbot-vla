@@ -5,6 +5,10 @@ set -x
 export HF_HOME="/home/ss-oss1/checkpoints/jianxin/cache"
 export HF_DATASETS_CACHE="/home/ss-oss1/checkpoints/jianxin/cache/hf_datasets"
 
+# Weights & Biases: local run dir (override with WANDB_DIR). API key: export WANDB_API_KEY or `wandb login`.
+export WANDB_DIR="${WANDB_DIR:-${HF_HOME}/wandb}"
+mkdir -p "${WANDB_DIR}"
+
 export TOKENIZERS_PARALLELISM=false
 if [ -z "$CUDA_VISIBLE_DEVICES" ]; then
   NPROC_PER_NODE=$(nvidia-smi -L | wc -l)

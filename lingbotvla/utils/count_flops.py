@@ -496,7 +496,9 @@ class LingBotFlopsCounter:
             promised_flops (float): The expected FLOPS of the current device.
         """
         tokens_sum = sum(batch_seqlens)
-        func = self.estimate_func.get(self.config.model_type, self._estimate_unknown_flops)
+        # LeRobot PI0Config and some custom configs omit HuggingFace-style model_type.
+        model_type = getattr(self.config, "model_type", None)
+        func = self.estimate_func.get(model_type, self._estimate_unknown_flops)
         estimated_flops = func(tokens_sum, batch_seqlens, delta_time, **kwargs)
         promised_flops = get_device_flops()
         return estimated_flops, promised_flops

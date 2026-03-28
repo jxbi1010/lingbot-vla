@@ -1,66 +1,13 @@
-model:
-  model_path: /home/ss-oss1/data/user/jxbi/lingbot/checkpoints/lingbot-vla-4b
-  tokenizer_path: /home/ss-oss1/data/user/jxbi/lingbot/checkpoints/qwen2.5-vl-3b-instruct
-  post_training: true
-  adanorm_time: true
-  old_adanorm: true
-
-data:
-  datasets_type: vla
-  data_name: robotwin_example
-  # Prefer a YAML list of LeRobot roots (one folder per dataset). A single string still works; comma-separated strings in one entry are split.
-  train_path: /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/lerobot_video_multiworker_test_v30
-  # Optional validation root(s); list or single string. Required when train.eval_frequency > 0.
-  val_path: /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/lerobot_video_multiworker_test_v30
-  num_workers: 16
-  norm_type: bounds_99_woclip
-  norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json #
-
-  chunk_subset: null  # # [0] = chunk-000,[0, 99] = chunk-000 to chunk-099 inclusive, etc. (set to null for full data)
-  episode_subset: null # inclusive e.g.[0,99]
-  train_chunk_subset: null
-  val_chunk_subset: null
-  train_episode_subset: [0, 210000]
-  # Inclusive; max episode index is total_episodes - 1 (e.g. 211237 when total_episodes is 211238).
-  val_episode_subset: [210001, 211237]  
-
-  verify_timestamps_sync: false
-  # Multi-GPU: rank 0 builds once and pickles; other ranks unpickle. Required to avoid parallel HF datasets cache races (JSONDecodeError on empty dataset_info.json).
-  dataset_init_main_process_first: true
-  # Multi-node: must be on storage visible to every rank (not /dev/shm). Val cache is sibling: same path with _val before .pkl (e.g. ..._val.pkl).
-  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/pickle/lerobot_video_multiworker_test_v30.pkl
+# Extends ego_finetune_v3.yaml. Put cluster-only train overrides here (e.g. output_dir,
+# wandb_name, micro_batch_size, global_batch_size, lr, eval_frequency); model/data and
+# other train fields come from the base file. Merge: nested `train` is merged over base.
+_base_: ego_finetune_v3.yaml
 
 train:
   output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_yuqi_v3
-  loss_type: L1_fm
-  data_parallel_mode: fsdp2
-  enable_full_shard: false
-  module_fsdp_enable: true
-  use_compile: false
-  use_wandb: true
-  wandb_project: lingbot-vla-ego-pretrain
   wandb_name: ego-21w-1024-multinodes
-  rmpad: false
-  rmpad_with_pos_ids: false
-  ulysses_parallel_size: 1
-  freeze_vision_encoder: false
-  tokenizer_max_length: 24
-  action_dim: 14
-  max_action_dim: 75
-  max_state_dim: 75
-  lr: 4.0e-4
-  lr_decay_style: constant
-  num_train_epochs: 1
   micro_batch_size: 32
   global_batch_size: 1024
-  max_steps: 5000000
-  ckpt_manager: dcp
-  save_steps: 1000
-  save_epochs: 1
-  enable_fp32: true
-  enable_resume: true
-  # Validation (EMA model, eval mode): set use_ema true, val_path, then eval_frequency > 0.
-  use_ema: true
+  lr: 4.0e-4
   eval_frequency: 100
   eval_steps: 2
-  eval_use_ema: false
