@@ -47,3 +47,4 @@ train:
   save_epochs: 1
   enable_fp32: true
   enable_resume: true
+  empty_cache_steps: 100

@@ -64,7 +64,7 @@ def _compute_seqlens(
         rmpad (bool): Whether to remove the padding tokens.
         rmpad_with_pos_ids (bool): Whether to remove the padding tokens using the position ids.
     """
-    if 'attention_mask' in micro_batch:
+    if "attention_mask" in micro_batch and micro_batch["attention_mask"] is not None:
         attention_mask = micro_batch["attention_mask"]
         if rmpad:
             seqlens = culen2len(micro_batch["cu_seqlens"]).tolist()
@@ -74,9 +74,11 @@ def _compute_seqlens(
             seqlens = seqlens[:-1] if (attention_mask == 0).any().item() else seqlens
         else:
             seqlens = attention_mask.sum(-1).tolist()
-    elif 'lang_masks' in micro_batch:
+    elif "lang_masks" in micro_batch and micro_batch.get("lang_masks") is not None:
         attention_mask = micro_batch["lang_masks"]
         seqlens = attention_mask.sum(-1).tolist()
+    else:
+        return []
 
     return seqlens
 

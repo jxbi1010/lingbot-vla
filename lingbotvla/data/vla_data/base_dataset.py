@@ -419,20 +419,6 @@ class RobotwinDataset(Dataset):
             tolerance_s=_lerobot_tolerance_s(verify_timestamps_sync),
         )
 
-        # required_columns = [
-        # "observation.state", 
-        # "action", 
-        # "episode_index", 
-        # "frame_index", 
-        # "task_index", 
-        # "timestamp", 
-        # "index"
-        # ]
-
-        # if "action_is_pad" in self.dataset.hf_dataset.column_names:
-        #     required_columns.append("action_is_pad")
-        # self.dataset.hf_dataset = self.dataset.hf_dataset.select_columns(required_columns)
-
         norm_stats = load_norm_stats_from_file(self.norm_stats_file)
         self.normalizer = Normalizer(
             norm_stats=norm_stats,
@@ -452,12 +438,18 @@ class RobotwinDataset(Dataset):
         return len(self.dataset)
 
     def getdata(self, idx):
+        # 1. Fetch raw data
         item = self.dataset[idx]
+        
+        # 2. Critical: Clone tensors to break the link to the memory-mapped Arrow page
+        item = {k: v.clone() if torch.is_tensor(v) else v for k, v in item.items()}
+        
         task = _task_label_from_index(self.dataset_meta, item["task_index"])
         assert task == item["task"]
         
         normalized_item = self.normalizer.normalize(item)
-        # Fallback: use black image when wrist cameras are missing (e.g. video decode failed, num_workers>0)
+        
+        # Process images
         base_image = (normalized_item["observation.images.cam_high"] * 255).to(torch.uint8)
         left_wrist_image = (
             (normalized_item["observation.images.cam_left_wrist"] * 255).to(torch.uint8)
@@ -473,30 +465,38 @@ class RobotwinDataset(Dataset):
         task_label = _task_label_from_index(self.dataset_meta, item["task_index"])
         prompt = [extract_semantic_motion(task_label)]
 
-        batch_dict =  {
+        # Intermediate dict for your processing functions
+        prep_dict = {
             "image": {"base_0_rgb": base_image, "left_wrist_0_rgb": left_wrist_image, "right_wrist_0_rgb": right_wrist_image},
             "state": normalized_item["observation.state"].to(torch.float32),
             "action": normalized_item["action"].to(torch.float32),
             "action_is_pad": normalized_item["action_is_pad"],
             "prompt": prompt,
         }
-        state = prepare_state(self.config, batch_dict) # bs,8 -> bs,32
-        lang_tokens, lang_masks = prepare_language(self.config, self.tokenizer, batch_dict) # bs, seq_len
-        actions = prepare_action(self.config, batch_dict) # bs,50,7 -> bs,50,32 , 7
-        images, img_masks, pil_images = prepare_images(self.config, self.image_processor, batch_dict, use_depth_align=self.use_depth_align)
+        
+        # Generate final training components
+        state = prepare_state(self.config, prep_dict)
+        lang_tokens, lang_masks = prepare_language(self.config, self.tokenizer, prep_dict)
+        actions = prepare_action(self.config, prep_dict)
+        images, img_masks, pil_images = prepare_images(self.config, self.image_processor, prep_dict, use_depth_align=self.use_depth_align)
 
-        batch_dict = {
+        final_output = {
             'images': images,
             'img_masks': img_masks,
             'state': state,
             'lang_tokens': lang_tokens,
             'lang_masks': lang_masks,
             'actions': actions,
-            'action_is_pad': batch_dict['action_is_pad'],
+            'action_is_pad': prep_dict['action_is_pad'],
         }
-        if self.use_depth_align: batch_dict['pil_images'] = pil_images
+        
+        if self.use_depth_align: 
+            final_output['pil_images'] = pil_images
 
-        return batch_dict
+        # 3. Explicitly cleanup all temporary references
+        del item, normalized_item, prep_dict
+        
+        return final_output
 
     def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
         if idx < 0 or idx >= len(self):

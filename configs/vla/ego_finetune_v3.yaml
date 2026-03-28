@@ -12,7 +12,6 @@ data:
   train_path: /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/lerobot_video_multiworker_test_v30
   val_path: /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/lerobot_video_multiworker_test_v30   # Optional validation root(s); list or single string. Required when train.eval_frequency > 0.
   num_workers: 16
-  pin_memory: false
   norm_type: bounds_99_woclip
   norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json #
   # chunk_subset / episode_subset: defaults for both splits (LeRobot data/chunk-* / global episode indices).
@@ -26,7 +25,7 @@ data:
   val_episode_subset: [210001, 211237]   # Inclusive; max index = total_episodes - 1 for info.json total_episodes 211238.
   verify_timestamps_sync: false
   # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
-  dataset_init_main_process_first: true
+  dataset_init_main_process_first: false
   dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/pickle/lerobot_video_multiworker_test_v30.pkl
 
 train:
@@ -59,7 +58,7 @@ train:
   enable_fp32: true
   enable_resume: true
   # More frequent gc + cuda.empty_cache via environ_meter.step (helps allocator churn; not OS page cache).
-  empty_cache_steps: 100
+  empty_cache_steps: 10
   # Validation: val_path + eval_frequency. Default validates training model (eval mode). use_ema is only for EMA weights/checkpoints.
   # Set eval_use_ema: true only if you need EMA metrics (requires use_ema; fragile under FSDP2).
   use_ema: true
