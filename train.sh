@@ -52,10 +52,13 @@ NPROC_PER_NODE=${NPROC_PER_NODE:=$NPROC_PER_NODE}
 MASTER_ADDR=${MASTER_ADDR:=0.0.0.0}
 MASTER_PORT=${MASTER_PORT:=62500}
 
-# export NCCL_DEBUG=INFO                                                                                                
-# export NCCL_DEBUG_SUBSYS=NET  
-# export NCCL_IB_DISABLE=0 
-# export NCCL_NET_GDR_LEVEL=2
+if [ "${NNODES:-1}" -gt 1 ]; then
+  export NCCL_IB_DISABLE="${NCCL_IB_DISABLE:-0}"
+  export NCCL_NET_GDR_LEVEL="${NCCL_NET_GDR_LEVEL:-2}"
+  export TORCH_NCCL_ASYNC_ERROR_HANDLING="${TORCH_NCCL_ASYNC_ERROR_HANDLING:-1}"
+  export NCCL_DEBUG="${NCCL_DEBUG:-INFO}"
+  export NCCL_DEBUG_SUBSYS="${NCCL_DEBUG_SUBSYS:-INIT,GRAPH,ENV}"
+fi
 
 
 torchrun --nnodes=$NNODES --nproc-per-node $NPROC_PER_NODE --node-rank $NODE_RANK \
