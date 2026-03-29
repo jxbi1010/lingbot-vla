@@ -49,8 +49,8 @@ train:
   lr: 4.0e-4
   lr_decay_style: constant
   num_train_epochs: 1
-  micro_batch_size: 32
-  global_batch_size: 1024
+  micro_batch_size: 8
+  global_batch_size: 256
   max_steps: 1000000
   ckpt_manager: dcp
   save_steps: 500
