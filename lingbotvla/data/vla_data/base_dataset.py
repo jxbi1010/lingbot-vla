@@ -563,19 +563,19 @@ class AlohaAgilexDataset(Dataset):
             tolerance_s=_lerobot_tolerance_s(verify_timestamps_sync),
         )
 
-        required_columns = [
-        "observation.state", 
-        "action", 
-        "episode_index", 
-        "frame_index", 
-        "task_index", 
-        "timestamp", 
-        "index"
-        ]
+        # required_columns = [
+        # "observation.state", 
+        # "action", 
+        # "episode_index", 
+        # "frame_index", 
+        # "task_index", 
+        # "timestamp", 
+        # "index"
+        # ]
 
-        if "action_is_pad" in self.dataset.hf_dataset.column_names:
-            required_columns.append("action_is_pad")
-        self.dataset.hf_dataset = self.dataset.hf_dataset.select_columns(required_columns)
+        # if "action_is_pad" in self.dataset.hf_dataset.column_names:
+        #     required_columns.append("action_is_pad")
+        # self.dataset.hf_dataset = self.dataset.hf_dataset.select_columns(required_columns)
 
         norm_stats = load_norm_stats_from_file(self.norm_stats_file)
         self.normalizer = Normalizer(
@@ -583,9 +583,9 @@ class AlohaAgilexDataset(Dataset):
             from_file=True,
             data_type='auto',
             norm_type={
-                "observation.images.cam_f": "identity",
-                "observation.images.cam_l": "identity",
-                "observation.images.cam_r": "identity",
+                "observation.images.cam_front": "identity",
+                "observation.images.cam_left": "identity",
+                "observation.images.cam_right": "identity",
                 "observation.state": data_config.norm_type,
                 "action": data_config.norm_type,
             },
@@ -602,15 +602,15 @@ class AlohaAgilexDataset(Dataset):
         
         normalized_item = self.normalizer.normalize(item)
         # Fallback: use black image when wrist cameras are missing (e.g. video decode failed, num_workers>0)
-        base_image = (normalized_item["observation.images.cam_f"] * 255).to(torch.uint8)
+        base_image = (normalized_item["observation.images.cam_front"] * 255).to(torch.uint8)
         left_wrist_image = (
-            (normalized_item["observation.images.cam_l"] * 255).to(torch.uint8)
-            if "observation.images.cam_l" in normalized_item
+            (normalized_item["observation.images.cam_left"] * 255).to(torch.uint8)
+            if "observation.images.cam_left" in normalized_item
             else torch.zeros_like(base_image)
         )
         right_wrist_image = (
-            (normalized_item["observation.images.cam_r"] * 255).to(torch.uint8)
-            if "observation.images.cam_r" in normalized_item
+            (normalized_item["observation.images.cam_right"] * 255).to(torch.uint8)
+            if "observation.images.cam_right" in normalized_item
             else torch.zeros_like(base_image)
         )
 

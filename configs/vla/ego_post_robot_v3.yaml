@@ -7,7 +7,7 @@ model:
 
 data:
   datasets_type: vla
-  data_name: robotwin_example
+  data_name: aloha_agilex
   # Prefer a YAML list of LeRobot roots (one folder per dataset). A single string still works; comma-separated strings in one entry are split.
   train_path: /home/ss-oss1/data/user/yuqi/data/cobot_magic_raw_lerobot/disk-1_Stacking_cups_v30
   val_path: /home/ss-oss1/data/user/yuqi/data/cobot_magic_raw_lerobot/disk-1_Stacking_cups_v30  # Optional validation root(s); list or single string. Required when train.eval_frequency > 0.
