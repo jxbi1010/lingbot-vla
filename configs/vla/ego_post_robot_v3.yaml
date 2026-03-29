@@ -25,7 +25,7 @@ data:
   val_episode_subset: null   # Inclusive; max index = total_episodes - 1 for info.json total_episodes 211238.
   verify_timestamps_sync: false
   # Multi-GPU: rank 0 builds LeRobot dataset first (warms cache); other ranks wait then build.
-  dataset_init_main_process_first: true
+  dataset_init_main_process_first: false
   dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/pickle/disk-1_Stacking_cups_v30.pkl
 
 train:
@@ -50,7 +50,7 @@ train:
   lr_decay_style: constant
   num_train_epochs: 1
   micro_batch_size: 8
-  global_batch_size: 256
+  global_batch_size: 64
   max_steps: 1000000
   ckpt_manager: dcp
   save_steps: 500
