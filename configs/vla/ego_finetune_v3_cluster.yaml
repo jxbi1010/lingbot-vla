@@ -4,10 +4,11 @@
 _base_: ego_finetune_v3.yaml
 
 data:
-  dataset_init_main_process_first: true
+  dataset_init_main_process_first: false
+  num_workers: 20
 
 train:
-  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_v3_batch1024_cluster
+  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_v3_batch1024_cluster_rdma
   wandb_name: ego-21w-1024-multinodes
   micro_batch_size: 32
   global_batch_size: 1024

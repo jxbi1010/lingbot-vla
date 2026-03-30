@@ -140,9 +140,9 @@ def _val_dataset_cache_fingerprint(args: "Arguments", use_depth_align: bool) -> 
     eff_ep, eff_chunk = resolve_vla_subset_fields(args.data, for_validation=True)
     if not args.data.val_path:
         raise ValueError("val cache fingerprint requires data.val_path")
-    return {
+    fp = {
         "kind": "vla_val",
-        "version": 1,
+        "version": 2,
         "data_name": args.data.data_name,
         "val_path": list(args.data.val_path),
         "episode_subset": eff_ep,
@@ -154,7 +154,10 @@ def _val_dataset_cache_fingerprint(args: "Arguments", use_depth_align: bool) -> 
         "chunk_size": args.train.chunk_size,
         "use_depth_align": use_depth_align,
         "tokenizer_path": args.model.tokenizer_path,
+        "eval_episode_sample_size": getattr(args.data, "eval_episode_sample_size", None),
+        "eval_episode_sample_seed": getattr(args.data, "eval_episode_sample_seed", None),
     }
+    return fp
 
 
 def _vla_cache_is_valid(cache_path: str, fingerprint: Dict[str, Any]) -> bool:

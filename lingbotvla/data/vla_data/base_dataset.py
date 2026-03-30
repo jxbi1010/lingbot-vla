@@ -14,6 +14,7 @@
 
 
 import os
+import random
 from pathlib import Path
 from typing import Callable, Dict, List, Literal, Optional, Union
 
@@ -159,6 +160,29 @@ def _task_label_from_index(meta: LeRobotDatasetMetadata, task_index: Union[int, 
     return str(tasks[idx])
 
 
+def _maybe_subsample_eval_episodes(
+    episodes: Optional[List[int]], data_config
+) -> Optional[List[int]]:
+    """If ``data_config.eval_episode_sample_size`` is set, sample that many episodes without replacement.
+
+    Used by eval configs (see ``EvalDataArguments``) to evaluate on a random subset of a large
+    ``val_episode_subset`` range. Deterministic given ``eval_episode_sample_seed``.
+    """
+    if episodes is None:
+        return None
+    n = getattr(data_config, "eval_episode_sample_size", None)
+    if n is None:
+        return episodes
+    n = int(n)
+    if n <= 0:
+        raise ValueError("eval_episode_sample_size must be positive when set.")
+    if len(episodes) <= n:
+        return episodes
+    seed = int(getattr(data_config, "eval_episode_sample_seed", 42))
+    rng = random.Random(seed)
+    return sorted(rng.sample(episodes, n))
+
+
 def _get_episodes_subset(data_config, dataset_meta) -> Optional[List[int]]:
     """Return episode indices to load. episode_subset takes precedence over chunk_subset.
     episode_subset can be:
@@ -168,6 +192,8 @@ def _get_episodes_subset(data_config, dataset_meta) -> Optional[List[int]]:
     - int: single chunk (e.g. 0 for chunk-000)
     - List [start, end]: chunk index range inclusive (e.g. [0, 99] for chunk-000 to chunk-099)
     - List [n]: single chunk (e.g. [0] for chunk-000)
+
+    Optional ``eval_episode_sample_size`` on ``data_config`` subsamples the resolved list (eval tooling).
     """
     episode_subset = getattr(data_config, "episode_subset", None)
     if episode_subset is not None:
@@ -179,8 +205,10 @@ def _get_episodes_subset(data_config, dataset_meta) -> Optional[List[int]]:
         if len(episode_subset) == 2 and all(isinstance(x, int) for x in episode_subset):
             # [0, 100] -> range 0 to 100 inclusive
             start, end = episode_subset[0], episode_subset[1]
-            return list(range(start, end + 1))
-        return list(episode_subset)
+            episodes = list(range(start, end + 1))
+        else:
+            episodes = list(episode_subset)
+        return _maybe_subsample_eval_episodes(episodes, data_config)
     chunk_subset = getattr(data_config, "chunk_subset", None)
     if chunk_subset is None:
         return None
@@ -205,7 +233,8 @@ def _get_episodes_subset(data_config, dataset_meta) -> Optional[List[int]]:
         )
     start = start_chunk * chunks_size
     end = min((end_chunk + 1) * chunks_size, total_episodes)
-    return list(range(start, end))
+    episodes = list(range(start, end))
+    return _maybe_subsample_eval_episodes(episodes, data_config)
 
 
 def resolve_vla_subset_fields(data_config, *, for_validation: bool):

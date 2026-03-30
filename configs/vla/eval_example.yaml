@@ -1,0 +1,85 @@
+# Standalone eval: same model/data knobs as training (see train_lingbotvla.py).
+# Run (single checkpoint):
+#   bash train.sh tasks/vla/eval_lingbotvla.py configs/vla/eval_example.yaml \
+#     --train.load_checkpoint_path /path/to/output/checkpoints/global_step_5000
+#
+# Multi-checkpoint sweep (500, 1000, ..., 10000 under train.checkpoints):
+#   Set train.eval_checkpoints_dir to .../checkpoints and either:
+#     train.eval_checkpoint_start: 500
+#     train.eval_checkpoint_end: 10000
+#     train.eval_checkpoint_interval: 500
+#   or train.eval_checkpoint_steps: [500, 1000, 1500, ...]
+#   You can omit eval_checkpoints_dir if train.load_checkpoint_path points at .../global_step_* (parent inferred).
+#
+# Eval dataset: set data.eval_path (preferred) or data.val_path — LeRobot dataset root(s).
+# If data.train_path is omitted, it defaults to the eval path (train data is unused here).
+#
+# Episode / chunk selection (same as ego_finetune_v3.yaml):
+# - chunk_subset / episode_subset: defaults for both splits.
+# - train_chunk_subset, val_chunk_subset, train_episode_subset, val_episode_subset: per-split overrides (null = use shared chunk_subset / episode_subset).
+# - Eval only builds the validation split; use val_episode_subset (or val_chunk_subset / episode_subset) to restrict eval episodes.
+# - Episode fields: explicit indices [0, 1, 2] or inclusive two-int range [first, last].
+# - Optional: data.eval_episode_sample_size — randomly sample that many episodes from the resolved val list
+#   (e.g. 1000 episodes from val_episode_subset range); data.eval_episode_sample_seed for reproducibility.
+model:
+  model_path: /home/ss-oss1/data/user/jxbi/lingbot/checkpoints/lingbot-vla-4b
+  tokenizer_path: /home/ss-oss1/data/user/jxbi/lingbot/checkpoints/qwen2.5-vl-3b-instruct
+  post_training: true
+  adanorm_time: true
+  old_adanorm: true
+data:
+  datasets_type: vla
+  data_name: robotwin_example
+  eval_path: /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/lerobot_video_multiworker_test_v30
+  num_workers: 8
+  norm_type: bounds_99_woclip
+  norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json
+  chunk_subset: null
+  episode_subset: null
+  train_chunk_subset: null
+  val_chunk_subset: null
+  train_episode_subset: null
+  # Example aligned with ego_finetune_v3.yaml val split; inclusive [first, last].
+  val_episode_subset: [0, 211237]
+  # Uncomment to use 1000 random episodes from that range (same seed => same episodes):
+  eval_episode_sample_size: 1000
+  eval_episode_sample_seed: 42
+  verify_timestamps_sync: false
+  dataset_init_main_process_first: true
+  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/pickle/lerobot_video_multiworker_test_v30_val.pkl
+train:
+  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_v3_batch1024_cluster_eval
+  loss_type: L1_fm
+  data_parallel_mode: fsdp2
+  enable_full_shard: false
+  module_fsdp_enable: true
+  use_compile: false
+  rmpad: false
+  rmpad_with_pos_ids: false
+  ulysses_parallel_size: 1
+  freeze_vision_encoder: false
+  tokenizer_max_length: 24
+  action_dim: 14
+  max_action_dim: 75
+  max_state_dim: 75
+  micro_batch_size: 16
+  global_batch_size: 128
+  enable_fp32: true
+  ckpt_manager: dcp
+  # Single checkpoint: path to .../global_step_N (also used to infer parent dir for sweeps).
+  load_checkpoint_path: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_v3_batch1024_cluster/checkpoints/global_step_5000
+  # Optional: sweep many steps (uncomment and set load_checkpoint_path parent or eval_checkpoints_dir).
+  # eval_checkpoints_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_v3_batch1024_cluster/checkpoints
+  eval_checkpoint_start: 500
+  eval_checkpoint_end: 11000
+  eval_checkpoint_interval: 500
+  # eval_checkpoint_steps: null
+  # Validation loss: number of dataloader steps per rank (same meaning as training validation)
+  eval_steps: 10
+  # Match training if you saved EMA and want EMA metrics; requires use_ema: true
+  use_ema: false
+  eval_use_ema: false
+  chunk_size: 50
+  vlm_causal: false
+  use_ki: false
+  align_params: {}
