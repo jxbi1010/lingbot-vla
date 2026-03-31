@@ -4,7 +4,7 @@
 _base_: ego_finetune_v3.yaml
 
 data:
-  dataset_init_main_process_first: false
+  dataset_init_main_process_first: true
   num_workers: 16
 
 train:
