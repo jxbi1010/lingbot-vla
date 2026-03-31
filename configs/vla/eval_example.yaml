@@ -42,7 +42,7 @@ data:
   # Example aligned with ego_finetune_v3.yaml val split; inclusive [first, last].
   val_episode_subset: [0, 211237]
   # Uncomment to use 1000 random episodes from that range (same seed => same episodes):
-  eval_episode_sample_size: 1000
+  eval_episode_sample_size: 2112
   eval_episode_sample_seed: 42
   verify_timestamps_sync: false
   dataset_init_main_process_first: true
@@ -75,7 +75,7 @@ train:
   eval_checkpoint_interval: 500
   # eval_checkpoint_steps: null
   # Validation loss: number of dataloader steps per rank (same meaning as training validation)
-  eval_steps: 10
+  eval_steps: 100
   # Match training if you saved EMA and want EMA metrics; requires use_ema: true
   use_ema: false
   eval_use_ema: false

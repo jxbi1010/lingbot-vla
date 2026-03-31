@@ -29,7 +29,7 @@ data:
   dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/pickle/lerobot_video_multiworker_test_v30.pkl
 
 train:
-  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_v3_batch1024sdsd
+  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_v3_batch1024_cluster
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
