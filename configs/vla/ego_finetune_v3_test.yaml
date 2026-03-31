@@ -43,11 +43,11 @@ train:
   action_dim: 14
   max_action_dim: 75
   max_state_dim: 75
-  lr: 4.0e-4
+  lr: 2.0e-4
   lr_decay_style: constant
   num_train_epochs: 10
-  micro_batch_size: 32
-  global_batch_size: 1024
+  micro_batch_size: 16
+  global_batch_size: 512
   max_steps: 100000
   ckpt_manager: dcp
   save_steps: 5000
