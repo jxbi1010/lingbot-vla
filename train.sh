@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -x
-set -euo pipefail
+# set -euo pipefail
 
 BASE_CACHE="${BASE_CACHE:-/home/ss-oss1/checkpoints/jianxin/cache}"
 mkdir -p "${BASE_CACHE}/hf_datasets" "${BASE_CACHE}/torch_inductor" "${BASE_CACHE}/triton" "${BASE_CACHE}/wandb"
