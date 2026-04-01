@@ -1,10 +1,14 @@
+import faulthandler
 import json
 import pickle
+import signal
 import threading
+import traceback
 from contextlib import contextmanager
 from copy import deepcopy
 import os
 import re
+import sys
 import time
 from dataclasses import asdict, dataclass, field, replace
 from functools import partial
@@ -13,6 +17,9 @@ import gc
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Literal
 from collections import defaultdict
 import datetime
+
+faulthandler.enable()
+faulthandler.register(signal.SIGUSR1, all_threads=True)
 import numpy as np
 import torch
 import torch.distributed as dist
@@ -680,6 +687,19 @@ class Arguments:
 
 
 def main():
+    _rank = int(os.environ.get("RANK", -1))
+    _local_rank = int(os.environ.get("LOCAL_RANK", -1))
+
+    def _signal_handler(signum, frame):
+        print(
+            f"[rank {_rank} local_rank {_local_rank}] received signal {signum}. Traceback:\n"
+            f"{''.join(traceback.format_stack(frame))}",
+            flush=True,
+        )
+
+    signal.signal(signal.SIGTERM, _signal_handler)
+    signal.signal(signal.SIGABRT, _signal_handler)
+
     _configure_hf_datasets_cache_env()
     args = parse_args(Arguments)
     logger.info(f"Process rank: {args.train.global_rank}, world size: {args.train.world_size}")
@@ -1424,4 +1444,13 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        rank = int(os.environ.get("RANK", -1))
+        local_rank = int(os.environ.get("LOCAL_RANK", -1))
+        print(
+            f"[rank {rank} local_rank {local_rank}] UNCAUGHT EXCEPTION:\n{traceback.format_exc()}",
+            flush=True,
+        )
+        sys.exit(1)
