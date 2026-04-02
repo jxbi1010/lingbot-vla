@@ -22,7 +22,7 @@ export TOKENIZERS_PARALLELISM=false
 
 export PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True"
 
-if [ -z "$CUDA_VISIBLE_DEVICES" ]; then
+if [ -z "${CUDA_VISIBLE_DEVICES:-}" ]; then
   NPROC_PER_NODE=$(nvidia-smi -L | wc -l)
 else
   # 可见 GPU 数量
