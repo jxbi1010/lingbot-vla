@@ -1017,17 +1017,26 @@ def main():
             load_checkpoint_path = args.train.load_checkpoint_path
             candidates = [load_checkpoint_path]
         elif args.train.enable_resume:
-            checkpoint_dir = f'{args.train.output_dir}/checkpoints'
-            if os.path.exists(checkpoint_dir):
-                pattern = re.compile(r"global_step_(\d+)")
-                tmp = []
-                for dirname in os.listdir(checkpoint_dir):
-                    match = pattern.fullmatch(dirname)
-                    if match:
-                        step = int(match.group(1))
-                        tmp.append((step, os.path.join(checkpoint_dir, dirname)))
-                tmp.sort(key=lambda x: x[0], reverse=True)
-                candidates = [p for _, p in tmp]
+            # Rank 0 scans the checkpoint directory and broadcasts the candidate list to all ranks.
+            # This prevents OSS metadata cache inconsistency where different nodes see different
+            # directory listings, causing some ranks to find a checkpoint while others get
+            # FileNotFoundError — which deadlocks the DCP collective load indefinitely.
+            if args.train.global_rank == 0:
+                checkpoint_dir = f'{args.train.output_dir}/checkpoints'
+                if os.path.exists(checkpoint_dir):
+                    pattern = re.compile(r"global_step_(\d+)")
+                    tmp = []
+                    for dirname in os.listdir(checkpoint_dir):
+                        match = pattern.fullmatch(dirname)
+                        if match:
+                            step = int(match.group(1))
+                            tmp.append((step, os.path.join(checkpoint_dir, dirname)))
+                    tmp.sort(key=lambda x: x[0], reverse=True)
+                    candidates = [p for _, p in tmp]
+            # Broadcast candidates from rank 0 so all ranks use the identical list.
+            candidates_obj = [candidates]
+            dist.broadcast_object_list(candidates_obj, src=0)
+            candidates = candidates_obj[0]
             if candidates:
                 load_checkpoint_path = candidates[0]
             else:
