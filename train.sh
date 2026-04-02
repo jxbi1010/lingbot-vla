@@ -60,8 +60,7 @@ if [ "${NNODES:-1}" -gt 1 ]; then
   export NCCL_DEBUG="${NCCL_DEBUG:-WARN}"
   export NCCL_DEBUG_SUBSYS="${NCCL_DEBUG_SUBSYS:-INIT,GRAPH,ENV}"
 fi
-
-export NCCL_ASYNC_ERROR_HANDLING=1
+export TORCH_NCCL_TRACE_BUFFER_SIZE=1048576  # 1MB trace buffer
 
 LOG_FILE="${BASE_CACHE}/logs/train_$(date +%Y%m%d_%H%M%S)_rank${NODE_RANK}.log"
 mkdir -p "$(dirname "$LOG_FILE")"

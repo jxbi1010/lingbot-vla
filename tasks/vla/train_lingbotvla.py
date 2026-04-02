@@ -802,14 +802,20 @@ def main():
                 cache_dir = os.path.dirname(cache_path)
                 if cache_dir:
                     os.makedirs(cache_dir, exist_ok=True)
-                # Sync before rank 0 deletes the pickle. Otherwise non-zero ranks can see a stale
-                # cache file, exit _wait_for_vla_pickle_cache immediately, hit dist.barrier while
-                # rank 0 is still rebuilding, and hit the process-group timeout (e.g. 10 min).
-                # Requires all ranks to reach here; if this barrier fails with NCCL "connection refused",
-                # fix MASTER_ADDR/PORT, pod networking, and NCCL env — not "rank 0 still building".
+                # Barrier 1: sync before rank 0 evaluates the fingerprint and potentially deletes
+                # a stale cache. Without this, non-zero ranks could poll os.path.exists, find the
+                # stale file, exit the wait loop, and hit barrier 2 while rank 0 is still rebuilding.
+                dist.barrier()
+                train_fp = _train_dataset_cache_fingerprint(args, use_depth_align) if args.train.global_rank == 0 else None
+                if args.train.global_rank == 0 and not _vla_cache_is_valid(cache_path, train_fp):
+                    # Delete stale cache NOW so non-zero ranks cannot see it after barrier 2.
+                    _remove_vla_cache_and_meta(cache_path)
+                    logger.info_rank0("Stale/missing train dataset cache removed.")
+                # Barrier 2: guarantees rank 0 has finished deleting any stale cache before
+                # non-zero ranks start polling os.path.exists. Closes the race window where a
+                # slow OSS meta-JSON read by rank 0 lets non-zero ranks escape the wait loop early.
                 dist.barrier()
                 if args.train.global_rank == 0:
-                    train_fp = _train_dataset_cache_fingerprint(args, use_depth_align)
                     if _vla_cache_is_valid(cache_path, train_fp):
                         logger.info_rank0(
                             f"Train dataset cache hit (fingerprint match); loading {cache_path}"
@@ -820,7 +826,6 @@ def main():
                             args.data.max_seq_len, args.data.train_size, len(train_dataset)
                         )
                     else:
-                        _remove_vla_cache_and_meta(cache_path)
                         logger.info_rank0(
                             f"Building VLA dataset on rank 0; will pickle to {cache_path} (other ranks unpickle)."
                         )
