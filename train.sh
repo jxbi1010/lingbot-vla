@@ -1,13 +1,13 @@
 #!/bin/bash
 
-set -x
-# set -euo pipefail
+set -euo pipefail
 
 BASE_CACHE="${BASE_CACHE:-/home/ss-oss1/checkpoints/jianxin/cache}"
 mkdir -p "${BASE_CACHE}/hf_datasets" "${BASE_CACHE}/torch_inductor" "${BASE_CACHE}/triton" "${BASE_CACHE}/wandb"
 
 export HF_HOME="${BASE_CACHE}"
 export HF_DATASETS_CACHE="${BASE_CACHE}/hf_datasets"
+export HF_DATASETS_CACHE_LOCAL_ROOT="${BASE_CACHE}/hf_datasets_local"
 
 export USER=jianxin
 export LOGNAME=jianxin
@@ -63,5 +63,8 @@ fi
 
 export NCCL_ASYNC_ERROR_HANDLING=1
 
+LOG_FILE="${BASE_CACHE}/logs/train_$(date +%Y%m%d_%H%M%S)_rank${NODE_RANK}.log"
+mkdir -p "$(dirname "$LOG_FILE")"
+echo "Logging to $LOG_FILE"
 torchrun --nnodes=$NNODES --nproc-per-node $NPROC_PER_NODE --node-rank $NODE_RANK \
-  --master-addr=$MASTER_ADDR --master-port=$MASTER_PORT $@ 2>&1 | tee log.txt
+  --master-addr=$MASTER_ADDR --master-port=$MASTER_PORT $@ 2>&1 | tee "$LOG_FILE"
