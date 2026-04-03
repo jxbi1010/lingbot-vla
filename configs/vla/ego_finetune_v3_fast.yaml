@@ -29,7 +29,7 @@ data:
   dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/pickle/lerobot_video_multiworker_test_v30.pkl
 
 train:
-  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_v3_batch1024_cluster
+  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_21w_v3_batch1024_fast
   loss_type: L1_fm
   data_parallel_mode: fsdp2
   enable_full_shard: false
@@ -37,7 +37,7 @@ train:
   use_compile: false
   use_wandb: true
   wandb_project: lingbot-vla-ego-pretrain
-  wandb_name: ego_21w_v3_batch1024
+  wandb_name: ego_21w_v3_batch1024_fast
   rmpad: false
   rmpad_with_pos_ids: false
   ulysses_parallel_size: 1
@@ -58,7 +58,7 @@ train:
   enable_fp32: true
   enable_resume: true
   # More frequent gc + cuda.empty_cache via environ_meter.step (helps allocator churn; not OS page cache).
-  empty_cache_steps: 100
+  empty_cache_steps: 500
   # Validation: val_path + eval_frequency. Default validates training model (eval mode). use_ema is only for EMA weights/checkpoints.
   # Set eval_use_ema: true only if you need EMA metrics (requires use_ema; fragile under FSDP2).
   use_ema: true
