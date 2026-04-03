@@ -11,7 +11,7 @@ data:
   # Prefer a YAML list of LeRobot roots (one folder per dataset). A single string still works; comma-separated strings in one entry are split.
   train_path: /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/lerobot_video_multiworker_test_v30
   val_path: /home/ss-oss1/data/user/yuqi/data/retarget_lerobot/lerobot_video_multiworker_test_v30   # Optional validation root(s); list or single string. Required when train.eval_frequency > 0.
-  num_workers: 16
+  num_workers: 4
   norm_type: bounds_99_woclip
   norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json #
   # chunk_subset / episode_subset: defaults for both splits (LeRobot data/chunk-* / global episode indices).
