@@ -20,8 +20,9 @@ data:
   cobot_magic_task_options_json: /home/jianxin/jx_ws/lingbot-vla/configs/tasks/cobot_magic_dataset_options.json
   cobot_magic_lerobot_root: /home/ss-oss1/data/user/yuqi/data/cobot_magic_raw_lerobot
   cobot_magic_hours: 100
-  cobot_magic_option: A
-  norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json
+  cobot_magic_option: B
+  # Merged from meta/stats.json for this bundle (see scripts/merge_lerobot_stats_to_norm_json.py)
+  norm_stats_file: assets/norm_stats/cobot_magic_100hr_B_norm.json
   train_episode_subset: null
   val_episode_subset: null
   train_chunk_subset: null
