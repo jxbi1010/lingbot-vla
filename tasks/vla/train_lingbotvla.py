@@ -9,6 +9,7 @@ import time
 from dataclasses import asdict, dataclass, field, replace
 from functools import partial
 from io import BytesIO
+from pathlib import Path
 import gc
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Literal
 from collections import defaultdict
@@ -662,8 +663,61 @@ class MyDataArguments(DataArguments):
             "help": "LeRobot validation root(s): YAML list or repeated CLI flags; comma-separated strings in one entry are split. Required when train.eval_frequency > 0."
         },
     )
+    cobot_magic_task_options_json: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": "Path to cobot_magic_dataset_options.json (task bundles with per-dataset names). When set, train_path is built from cobot_magic_lerobot_root + bundle entries."
+        },
+    )
+    cobot_magic_lerobot_root: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": "Parent directory containing LeRobot dataset folders (e.g. .../cobot_magic_raw_lerobot). Required when cobot_magic_task_options_json is set."
+        },
+    )
+    cobot_magic_hours: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": "Nominal bundle size in hours: 100, 200, 500, 1000, or 2000 (matches JSON keys like 100hr_datasets_A). Required when cobot_magic_task_options_json is set."
+        },
+    )
+    cobot_magic_option: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": "Bundle variant: A, B, or C (matches JSON keys like 100hr_datasets_B). Defaults to A when cobot_magic_task_options_json is set."
+        },
+    )
 
     def __post_init__(self):
+        if self.cobot_magic_task_options_json:
+            if not self.cobot_magic_lerobot_root or self.cobot_magic_hours is None:
+                raise ValueError(
+                    "cobot_magic_task_options_json requires cobot_magic_lerobot_root and cobot_magic_hours"
+                )
+            opt = (self.cobot_magic_option or "A").strip().upper()
+            if opt not in ("A", "B", "C"):
+                raise ValueError(f"cobot_magic_option must be A, B, or C; got {self.cobot_magic_option!r}")
+            key = f"{int(self.cobot_magic_hours)}hr_datasets_{opt}"
+            jpath = Path(self.cobot_magic_task_options_json).expanduser()
+            if not jpath.is_file():
+                raise FileNotFoundError(f"cobot_magic_task_options_json not found: {jpath}")
+            with open(jpath, encoding="utf-8") as f:
+                data = json.load(f)
+            if key not in data:
+                raise KeyError(
+                    f"Missing bundle key {key!r} in {jpath}. "
+                    f"Available keys (sample): {sorted(data.keys())[:24]}"
+                )
+            bundle = data[key]
+            root = Path(self.cobot_magic_lerobot_root).expanduser()
+            names = [d["name"] for d in bundle.get("datasets", [])]
+            if not names:
+                raise ValueError(f"Bundle {key!r} has no datasets in {jpath}")
+            if self.train_path:
+                raise ValueError(
+                    "Do not set data.train_path when cobot_magic_task_options_json is set (paths come from the JSON bundle)."
+                )
+            self.train_path = [str(root / n) for n in names]
         if self.val_path is not None:
             self.val_path = normalize_lerobot_roots(self.val_path)
             if not self.val_path:

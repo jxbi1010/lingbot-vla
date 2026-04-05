@@ -1,0 +1,3155 @@
+{
+  "100hr_datasets_A": {
+    "id": "100hr datasets A",
+    "description": "Exactly 100.0 h from four datasets (from cobot_magic_raw_lerobot_summary.md)",
+    "total_hours": 100.0,
+    "datasets": [
+      {
+        "name": "disk-7_Steamed_rice_dumplings_v30",
+        "hours": 30.8461
+      },
+      {
+        "name": "disk-5_FoId_whie_cIothes_1_v30",
+        "hours": 26.001
+      },
+      {
+        "name": "disk-3_fold_purple_towel_ms-M202601160002_v30",
+        "hours": 22.1659
+      },
+      {
+        "name": "disk-9_Clip_Classification_v30",
+        "hours": 20.987
+      }
+    ]
+  },
+  "100hr_datasets_B": {
+    "id": "100hr datasets B",
+    "description": "~100.4 h from three large datasets (fewer roots to mount)",
+    "total_hours": 100.4144,
+    "datasets": [
+      {
+        "name": "disk-12_Rainbow_Circle_Classification_v30",
+        "hours": 37.0746
+      },
+      {
+        "name": "disk-10_Sorage_for_zongzi_toys_v30",
+        "hours": 32.2096
+      },
+      {
+        "name": "disk-10_Marker_pen_packaging_v30",
+        "hours": 31.1302
+      }
+    ]
+  },
+  "100hr_datasets_C": {
+    "id": "100hr datasets C",
+    "description": "~100.02 h across eight datasets (broader task mix)",
+    "total_hours": 100.0225,
+    "datasets": [
+      {
+        "name": "disk-7_Storage_green_paper_cups_v30",
+        "hours": 21.4202
+      },
+      {
+        "name": "disk-4_Bedroom_tidying_v30",
+        "hours": 19.4375
+      },
+      {
+        "name": "disk-13_Fold_the_towel_9_v30",
+        "hours": 13.1747
+      },
+      {
+        "name": "disk-1_fold_towels1_v30",
+        "hours": 12.3167
+      },
+      {
+        "name": "disk-8_Edible_Salt_Canning_v30",
+        "hours": 10.3911
+      },
+      {
+        "name": "disk-3_folding_clothes_cotton_grass-M202512030001_v30",
+        "hours": 10.3767
+      },
+      {
+        "name": "disk-3_stacked_short_brown_ms-M202511270001_v30",
+        "hours": 8.4473
+      },
+      {
+        "name": "disk-1_folding_clothes_cotton_grass-M202512030001_v30",
+        "hours": 4.4583
+      }
+    ]
+  },
+  "200hr_datasets_A": {
+    "id": "200hr datasets A",
+    "description": "~200 h - Greedy by largest hours first (fewer dataset roots).",
+    "total_hours": 208.3534,
+    "datasets": [
+      {
+        "name": "disk-12_Rainbow_Circle_Classification_v30",
+        "hours": 37.0746
+      },
+      {
+        "name": "disk-9_Chess_Set_Packaging_v30",
+        "hours": 36.328
+      },
+      {
+        "name": "disk-3_Storage_Coffee_v30",
+        "hours": 35.6499
+      },
+      {
+        "name": "disk-8_Keycap_storage_v30",
+        "hours": 35.162
+      },
+      {
+        "name": "disk-10_Sorage_for_zongzi_toys_v30",
+        "hours": 32.2096
+      },
+      {
+        "name": "disk-5_Fold_yellow_clothes_v30",
+        "hours": 31.9293
+      }
+    ]
+  },
+  "200hr_datasets_B": {
+    "id": "200hr datasets B",
+    "description": "~200 h - Greedy by smallest hours first (more tasks, many roots).",
+    "total_hours": 200.9867,
+    "datasets": [
+      {
+        "name": "disk-1_fold_towels_v30",
+        "hours": 8.8171
+      },
+      {
+        "name": "disk-3_place_headphones_right_ms-M202601080002_v30",
+        "hours": 8.7917
+      },
+      {
+        "name": "disk-2_put_medicine_back_box_ms-M20251015002_v30",
+        "hours": 8.5016
+      },
+      {
+        "name": "disk-3_stacked_short_brown_ms-M202511270001_v30",
+        "hours": 8.4473
+      },
+      {
+        "name": "disk-2_spell_good_ms-M202503280001_v30",
+        "hours": 8.273
+      },
+      {
+        "name": "disk-3_place_potted_plant_ms-M202512280001_v30",
+        "hours": 8.1241
+      },
+      {
+        "name": "disk-2_透明试管的放置_ms__v30",
+        "hours": 7.9718
+      },
+      {
+        "name": "disk-3_number_crunching_ms-M202512190001_v30",
+        "hours": 7.8766
+      },
+      {
+        "name": "disk-2_place_fork_ms-M202501220004_v30",
+        "hours": 7.654
+      },
+      {
+        "name": "disk-2_place_eggs_ms-M202501220003_v30",
+        "hours": 7.4851
+      },
+      {
+        "name": "disk-2_tablespoon_sorting_ms-M202510150003_v30",
+        "hours": 7.4453
+      },
+      {
+        "name": "disk-5_Arrange_the_number_7_v30",
+        "hours": 7.4011
+      },
+      {
+        "name": "disk-3_storage_clips_right_ms-M202512190002_v30",
+        "hours": 7.3505
+      },
+      {
+        "name": "disk-1_Storage_Tray_v30",
+        "hours": 7.3261
+      },
+      {
+        "name": "disk-2_storing_fruits_ms-M202502170007_v30",
+        "hours": 7.2532
+      },
+      {
+        "name": "disk-3_Storage_bone_dish_v30",
+        "hours": 7.0244
+      },
+      {
+        "name": "disk-12_Shoe_boxing_v30",
+        "hours": 6.977
+      },
+      {
+        "name": "disk-2_remove_knife_ms-M202502260003_v30",
+        "hours": 6.6639
+      },
+      {
+        "name": "disk-7_Plating_mooncakes_v30",
+        "hours": 6.6478
+      },
+      {
+        "name": "disk-11_Shoe_Cabinet_Stationery_Storage_3_v30",
+        "hours": 6.5035
+      },
+      {
+        "name": "disk-1_Oyster_Sauce_Five-Spice_Powder_v30",
+        "hours": 6.1714
+      },
+      {
+        "name": "disk-1_Place_the_wok_on_the_stove_v30",
+        "hours": 5.9533
+      },
+      {
+        "name": "disk-1_Tennis_storage_v30",
+        "hours": 5.9273
+      },
+      {
+        "name": "disk-1_Mineral_water_bottle_v30",
+        "hours": 5.706
+      },
+      {
+        "name": "disk-2_place_cup_ms-M202502150003_v30",
+        "hours": 4.9639
+      },
+      {
+        "name": "disk-3_pick_coke_right_ms-M202512230002_v30",
+        "hours": 4.8692
+      },
+      {
+        "name": "disk-11_Storage_Hooks_v30",
+        "hours": 4.7851
+      },
+      {
+        "name": "disk-1_folding_clothes_cotton_grass-M202512030001_v30",
+        "hours": 4.4583
+      },
+      {
+        "name": "disk-13_fold_towels_3_v30",
+        "hours": 3.3396
+      },
+      {
+        "name": "disk-1_Arrange_the_number_7_v30",
+        "hours": 2.2775
+      }
+    ]
+  },
+  "200hr_datasets_C": {
+    "id": "200hr datasets C",
+    "description": "~200 h - Random subset search minimizing distance to target hours (from cobot_magic_raw_lerobot_summary.md).",
+    "total_hours": 200.0262,
+    "datasets": [
+      {
+        "name": "disk-11_Tpes_of_Needles_and_Threds_v30",
+        "hours": 21.8223
+      },
+      {
+        "name": "disk-8_Plate_the_donuts_v30",
+        "hours": 17.5287
+      },
+      {
+        "name": "disk-14_Red_paper_cup_color_positioning_v30",
+        "hours": 17.4038
+      },
+      {
+        "name": "disk-8_Five_spice_powder_can_v30",
+        "hours": 14.9919
+      },
+      {
+        "name": "disk-14_Stack_of_green_paper_cups_v30",
+        "hours": 14.2122
+      },
+      {
+        "name": "disk-4_Stir-fried_pork_with_chili_peppers_v30",
+        "hours": 14.0451
+      },
+      {
+        "name": "disk-14_Storage_of_red_hollow_beads_v30",
+        "hours": 13.7544
+      },
+      {
+        "name": "disk-13_fold_the_towel_16_v30",
+        "hours": 13.2391
+      },
+      {
+        "name": "disk-9_Blue_storage_clips_v30",
+        "hours": 13.2339
+      },
+      {
+        "name": "disk-13_Fold_the_towel_9_v30",
+        "hours": 13.1747
+      },
+      {
+        "name": "disk-5_Collecting_trash_v30",
+        "hours": 12.6485
+      },
+      {
+        "name": "disk-1_fold_towels1_v30",
+        "hours": 12.3167
+      },
+      {
+        "name": "disk-7_Storing_yellow_paper_cups_v30",
+        "hours": 11.4246
+      },
+      {
+        "name": "disk-11_Take_out_the_vegetables_v30",
+        "hours": 10.2303
+      }
+    ]
+  },
+  "500hr_datasets_A": {
+    "id": "500hr datasets A",
+    "description": "~500 h - Greedy by largest hours first (fewer dataset roots).",
+    "total_hours": 521.2775,
+    "datasets": [
+      {
+        "name": "disk-12_Rainbow_Circle_Classification_v30",
+        "hours": 37.0746
+      },
+      {
+        "name": "disk-9_Chess_Set_Packaging_v30",
+        "hours": 36.328
+      },
+      {
+        "name": "disk-3_Storage_Coffee_v30",
+        "hours": 35.6499
+      },
+      {
+        "name": "disk-8_Keycap_storage_v30",
+        "hours": 35.162
+      },
+      {
+        "name": "disk-10_Sorage_for_zongzi_toys_v30",
+        "hours": 32.2096
+      },
+      {
+        "name": "disk-5_Fold_yellow_clothes_v30",
+        "hours": 31.9293
+      },
+      {
+        "name": "disk-10_Marker_pen_packaging_v30",
+        "hours": 31.1302
+      },
+      {
+        "name": "disk-7_Steamed_rice_dumplings_v30",
+        "hours": 30.8461
+      },
+      {
+        "name": "disk-9_Earplug_storage_v30",
+        "hours": 30.3786
+      },
+      {
+        "name": "disk-6_Cooking_with_a_steamer_v30",
+        "hours": 30.06
+      },
+      {
+        "name": "disk-6_make_seaweed_soup_v30",
+        "hours": 29.928
+      },
+      {
+        "name": "disk-2_Layered_white_short-sleeve_shirt_v30",
+        "hours": 27.6814
+      },
+      {
+        "name": "disk-5_Fruit_Plating_v30",
+        "hours": 27.2089
+      },
+      {
+        "name": "disk-11_Zongzi_Plating_v30",
+        "hours": 26.728
+      },
+      {
+        "name": "disk-1_storage_long_tail_cilps_v30",
+        "hours": 26.5611
+      },
+      {
+        "name": "disk-1_Toy_storage_v30",
+        "hours": 26.4008
+      },
+      {
+        "name": "disk-5_FoId_whie_cIothes_1_v30",
+        "hours": 26.001
+      }
+    ]
+  },
+  "500hr_datasets_B": {
+    "id": "500hr datasets B",
+    "description": "~500 h - Greedy by smallest hours first (more tasks, many roots).",
+    "total_hours": 510.2784,
+    "datasets": [
+      {
+        "name": "disk-13_fold_towels_5_v30",
+        "hours": 10.9546
+      },
+      {
+        "name": "disk-10_Vegetables_in_a_Basket_v30",
+        "hours": 10.9072
+      },
+      {
+        "name": "disk-11_Hair_Tie_Qrganizer_v30",
+        "hours": 10.89
+      },
+      {
+        "name": "disk-1_fold_towels2_v30",
+        "hours": 10.7905
+      },
+      {
+        "name": "disk-9_Blue_storage_paper_cups_v30",
+        "hours": 10.7384
+      },
+      {
+        "name": "disk-1_Stacking_cups_v30",
+        "hours": 10.6728
+      },
+      {
+        "name": "disk-14_White_soup_bowl_basket_v30",
+        "hours": 10.6518
+      },
+      {
+        "name": "disk-3_tacked_shorts_gray_ms-M202512100003_v30",
+        "hours": 10.6422
+      },
+      {
+        "name": "disk-8_Edible_Salt_Canning_v30",
+        "hours": 10.3911
+      },
+      {
+        "name": "disk-3_folding_clothes_cotton_grass-M202512030001_v30",
+        "hours": 10.3767
+      },
+      {
+        "name": "disk-11_Take_out_the_vegetables_v30",
+        "hours": 10.2303
+      },
+      {
+        "name": "disk-2_classification_fruits_vegetable-M202510150005_v30",
+        "hours": 10.227
+      },
+      {
+        "name": "disk-7_Storage_mooncake_toy_v30",
+        "hours": 10.2054
+      },
+      {
+        "name": "disk-2_store_socks_ms-M202510150001_v30",
+        "hours": 10.1546
+      },
+      {
+        "name": "disk-2_unscrew_test_tube_ms-M202510200003_v30",
+        "hours": 9.9895
+      },
+      {
+        "name": "disk-10_Mooncake_plating_v30",
+        "hours": 9.942
+      },
+      {
+        "name": "disk-11_Shoe_Cabinet_Stationery_Storage_2_v30",
+        "hours": 9.8938
+      },
+      {
+        "name": "disk-2_fold_towel_ms-M2025102300004_v30",
+        "hours": 9.8643
+      },
+      {
+        "name": "disk-3_tacked_shorts_apricot_ms-M202512100001_v30",
+        "hours": 9.8137
+      },
+      {
+        "name": "disk-10_Take_out_the_fruit_v30",
+        "hours": 9.7844
+      },
+      {
+        "name": "disk-3_stacked_short_Khaki_ms_v30",
+        "hours": 9.7512
+      },
+      {
+        "name": "disk-1_Stapler_binds_staples_v30",
+        "hours": 9.7254
+      },
+      {
+        "name": "disk-12_Reset_the_seasoning_box_v30",
+        "hours": 9.6488
+      },
+      {
+        "name": "disk-3_tacked_shorts_black_ms-M202512100002_v30",
+        "hours": 9.4046
+      },
+      {
+        "name": "disk-1_Oyster_Sauce_Five-Spice_Powder_1_v30",
+        "hours": 9.2804
+      },
+      {
+        "name": "disk-2_folded_short_grey_ms_v30",
+        "hours": 9.2705
+      },
+      {
+        "name": "disk-5_Hair_Clip_Organizer_v30",
+        "hours": 9.2381
+      },
+      {
+        "name": "disk-2_steamed_eggs-M202510150004_v30",
+        "hours": 9.1922
+      },
+      {
+        "name": "disk-2_hanging_water_cup_ms-M202501220002_v30",
+        "hours": 8.9358
+      },
+      {
+        "name": "disk-13_fold_towels_2_v30",
+        "hours": 8.8636
+      },
+      {
+        "name": "disk-5_Breakfast_plating_v30",
+        "hours": 8.8608
+      },
+      {
+        "name": "disk-1_fold_towels_v30",
+        "hours": 8.8171
+      },
+      {
+        "name": "disk-3_place_headphones_right_ms-M202601080002_v30",
+        "hours": 8.7917
+      },
+      {
+        "name": "disk-2_put_medicine_back_box_ms-M20251015002_v30",
+        "hours": 8.5016
+      },
+      {
+        "name": "disk-3_stacked_short_brown_ms-M202511270001_v30",
+        "hours": 8.4473
+      },
+      {
+        "name": "disk-2_spell_good_ms-M202503280001_v30",
+        "hours": 8.273
+      },
+      {
+        "name": "disk-3_place_potted_plant_ms-M202512280001_v30",
+        "hours": 8.1241
+      },
+      {
+        "name": "disk-2_透明试管的放置_ms__v30",
+        "hours": 7.9718
+      },
+      {
+        "name": "disk-3_number_crunching_ms-M202512190001_v30",
+        "hours": 7.8766
+      },
+      {
+        "name": "disk-2_place_fork_ms-M202501220004_v30",
+        "hours": 7.654
+      },
+      {
+        "name": "disk-2_place_eggs_ms-M202501220003_v30",
+        "hours": 7.4851
+      },
+      {
+        "name": "disk-2_tablespoon_sorting_ms-M202510150003_v30",
+        "hours": 7.4453
+      },
+      {
+        "name": "disk-5_Arrange_the_number_7_v30",
+        "hours": 7.4011
+      },
+      {
+        "name": "disk-3_storage_clips_right_ms-M202512190002_v30",
+        "hours": 7.3505
+      },
+      {
+        "name": "disk-1_Storage_Tray_v30",
+        "hours": 7.3261
+      },
+      {
+        "name": "disk-2_storing_fruits_ms-M202502170007_v30",
+        "hours": 7.2532
+      },
+      {
+        "name": "disk-3_Storage_bone_dish_v30",
+        "hours": 7.0244
+      },
+      {
+        "name": "disk-12_Shoe_boxing_v30",
+        "hours": 6.977
+      },
+      {
+        "name": "disk-2_remove_knife_ms-M202502260003_v30",
+        "hours": 6.6639
+      },
+      {
+        "name": "disk-7_Plating_mooncakes_v30",
+        "hours": 6.6478
+      },
+      {
+        "name": "disk-11_Shoe_Cabinet_Stationery_Storage_3_v30",
+        "hours": 6.5035
+      },
+      {
+        "name": "disk-1_Oyster_Sauce_Five-Spice_Powder_v30",
+        "hours": 6.1714
+      },
+      {
+        "name": "disk-1_Place_the_wok_on_the_stove_v30",
+        "hours": 5.9533
+      },
+      {
+        "name": "disk-1_Tennis_storage_v30",
+        "hours": 5.9273
+      },
+      {
+        "name": "disk-1_Mineral_water_bottle_v30",
+        "hours": 5.706
+      },
+      {
+        "name": "disk-2_place_cup_ms-M202502150003_v30",
+        "hours": 4.9639
+      },
+      {
+        "name": "disk-3_pick_coke_right_ms-M202512230002_v30",
+        "hours": 4.8692
+      },
+      {
+        "name": "disk-11_Storage_Hooks_v30",
+        "hours": 4.7851
+      },
+      {
+        "name": "disk-1_folding_clothes_cotton_grass-M202512030001_v30",
+        "hours": 4.4583
+      },
+      {
+        "name": "disk-13_fold_towels_3_v30",
+        "hours": 3.3396
+      },
+      {
+        "name": "disk-1_Arrange_the_number_7_v30",
+        "hours": 2.2775
+      }
+    ]
+  },
+  "500hr_datasets_C": {
+    "id": "500hr datasets C",
+    "description": "~500 h - Random subset search minimizing distance to target hours (from cobot_magic_raw_lerobot_summary.md).",
+    "total_hours": 500.0323,
+    "datasets": [
+      {
+        "name": "disk-1_storage_long_tail_cilps_v30",
+        "hours": 26.5611
+      },
+      {
+        "name": "disk-1_Toy_storage_v30",
+        "hours": 26.4008
+      },
+      {
+        "name": "disk-7_Skewer_meat_v30",
+        "hours": 24.1732
+      },
+      {
+        "name": "disk-9_Donut_Ring_v30",
+        "hours": 22.4857
+      },
+      {
+        "name": "disk-7_Storage_green_paper_cups_v30",
+        "hours": 21.4202
+      },
+      {
+        "name": "disk-12_Matryoshka_doll_v30",
+        "hours": 21.3828
+      },
+      {
+        "name": "disk-13_Fold_towel_10_v30",
+        "hours": 19.8475
+      },
+      {
+        "name": "disk-5_Complete_Chinese_Chess_v30",
+        "hours": 19.0614
+      },
+      {
+        "name": "disk-9_Circular_Block_Completion_v30",
+        "hours": 18.7662
+      },
+      {
+        "name": "disk-6_Tableware_Storage_1_v30",
+        "hours": 17.981
+      },
+      {
+        "name": "disk-13_Storage_Billiards_v30",
+        "hours": 17.8848
+      },
+      {
+        "name": "disk-10_Storage_orange_clips_v30",
+        "hours": 17.8197
+      },
+      {
+        "name": "disk-8_Plate_the_donuts_v30",
+        "hours": 17.5287
+      },
+      {
+        "name": "disk-14_Red_paper_cup_color_positioning_v30",
+        "hours": 17.4038
+      },
+      {
+        "name": "disk-11_Clean_up_the_kitchen_counter_1_v30",
+        "hours": 17.2832
+      },
+      {
+        "name": "disk-3_fold_pink_towel_ms-M202512280003_v30",
+        "hours": 15.9005
+      },
+      {
+        "name": "disk-10_Storage_yellow_clips_v30",
+        "hours": 14.0798
+      },
+      {
+        "name": "disk-4_Stir-fried_pork_with_chili_peppers_v30",
+        "hours": 14.0451
+      },
+      {
+        "name": "disk-8_Fan_packaging_v30",
+        "hours": 13.2563
+      },
+      {
+        "name": "disk-5_Hanging_accessories_v30",
+        "hours": 12.9033
+      },
+      {
+        "name": "disk-13_fold_towels_1_v30",
+        "hours": 12.7322
+      },
+      {
+        "name": "disk-13_fold_towels_22_v30",
+        "hours": 12.3771
+      },
+      {
+        "name": "disk-1_fold_towels1_v30",
+        "hours": 12.3167
+      },
+      {
+        "name": "disk-12_Mouse_stoage_v30",
+        "hours": 11.3449
+      },
+      {
+        "name": "disk-1_Storage_pen_v30",
+        "hours": 11.2538
+      },
+      {
+        "name": "disk-11_Stack_red_paper_cups_v30",
+        "hours": 11.2475
+      },
+      {
+        "name": "disk-6_Wash_the_bath_towels_v30",
+        "hours": 11.1629
+      },
+      {
+        "name": "disk-2_cotton-dark_blue_with_whiter_ms-M202511180001_v30",
+        "hours": 11.0718
+      },
+      {
+        "name": "disk-2_plug_charger_msM202510290001_v30",
+        "hours": 11.0683
+      },
+      {
+        "name": "disk-3_stacked_short_brown_ms-M202511270001_v30",
+        "hours": 8.4473
+      },
+      {
+        "name": "disk-2_place_eggs_ms-M202501220003_v30",
+        "hours": 7.4851
+      },
+      {
+        "name": "disk-13_fold_towels_3_v30",
+        "hours": 3.3396
+      }
+    ]
+  },
+  "1000hr_datasets_A": {
+    "id": "1000hr datasets A",
+    "description": "~1000 h - Greedy by largest hours first (fewer dataset roots).",
+    "total_hours": 1000.3619,
+    "datasets": [
+      {
+        "name": "disk-12_Rainbow_Circle_Classification_v30",
+        "hours": 37.0746
+      },
+      {
+        "name": "disk-9_Chess_Set_Packaging_v30",
+        "hours": 36.328
+      },
+      {
+        "name": "disk-3_Storage_Coffee_v30",
+        "hours": 35.6499
+      },
+      {
+        "name": "disk-8_Keycap_storage_v30",
+        "hours": 35.162
+      },
+      {
+        "name": "disk-10_Sorage_for_zongzi_toys_v30",
+        "hours": 32.2096
+      },
+      {
+        "name": "disk-5_Fold_yellow_clothes_v30",
+        "hours": 31.9293
+      },
+      {
+        "name": "disk-10_Marker_pen_packaging_v30",
+        "hours": 31.1302
+      },
+      {
+        "name": "disk-7_Steamed_rice_dumplings_v30",
+        "hours": 30.8461
+      },
+      {
+        "name": "disk-9_Earplug_storage_v30",
+        "hours": 30.3786
+      },
+      {
+        "name": "disk-6_Cooking_with_a_steamer_v30",
+        "hours": 30.06
+      },
+      {
+        "name": "disk-6_make_seaweed_soup_v30",
+        "hours": 29.928
+      },
+      {
+        "name": "disk-2_Layered_white_short-sleeve_shirt_v30",
+        "hours": 27.6814
+      },
+      {
+        "name": "disk-5_Fruit_Plating_v30",
+        "hours": 27.2089
+      },
+      {
+        "name": "disk-11_Zongzi_Plating_v30",
+        "hours": 26.728
+      },
+      {
+        "name": "disk-1_storage_long_tail_cilps_v30",
+        "hours": 26.5611
+      },
+      {
+        "name": "disk-1_Toy_storage_v30",
+        "hours": 26.4008
+      },
+      {
+        "name": "disk-5_FoId_whie_cIothes_1_v30",
+        "hours": 26.001
+      },
+      {
+        "name": "disk-5_hand_grip_board_v30",
+        "hours": 25.5121
+      },
+      {
+        "name": "disk-5_Hand_paddle_v30",
+        "hours": 24.9416
+      },
+      {
+        "name": "disk-7_Square_Block_Completion_v30",
+        "hours": 24.6365
+      },
+      {
+        "name": "disk-7_Skewer_meat_v30",
+        "hours": 24.1732
+      },
+      {
+        "name": "disk-13_Fold_the_towel_17_v30",
+        "hours": 24.0212
+      },
+      {
+        "name": "disk-3_fold_green_towel_ms-M202601160001_v30",
+        "hours": 23.7852
+      },
+      {
+        "name": "disk-2_fold_blue_bar_towel-M202601160003_v30",
+        "hours": 23.6924
+      },
+      {
+        "name": "disk-5_Fold_the_purple_towel_v30",
+        "hours": 23.4528
+      },
+      {
+        "name": "disk-3_fold_elk_towel_ms-M202601160004_v30",
+        "hours": 23.3464
+      },
+      {
+        "name": "disk-6_Washing_vegetables_6_v30",
+        "hours": 22.6887
+      },
+      {
+        "name": "disk-9_Donut_Ring_v30",
+        "hours": 22.4857
+      },
+      {
+        "name": "disk-11_Tidy_up_the_living_room_v30",
+        "hours": 22.3927
+      },
+      {
+        "name": "disk-3_fold_purple_towel_ms-M202601160002_v30",
+        "hours": 22.1659
+      },
+      {
+        "name": "disk-11_Tpes_of_Needles_and_Threds_v30",
+        "hours": 21.8223
+      },
+      {
+        "name": "disk-6_Tableware_Storage_2_v30",
+        "hours": 21.7768
+      },
+      {
+        "name": "disk-12_Screw_Classification_v30",
+        "hours": 21.5879
+      },
+      {
+        "name": "disk-13_Fold_the_towel_13_v30",
+        "hours": 21.4985
+      },
+      {
+        "name": "disk-7_Storage_green_paper_cups_v30",
+        "hours": 21.4202
+      },
+      {
+        "name": "disk-12_Matryoshka_doll_v30",
+        "hours": 21.3828
+      },
+      {
+        "name": "disk-1_Make_coffee_v30",
+        "hours": 21.2333
+      },
+      {
+        "name": "disk-10_Red_storage_clips_v30",
+        "hours": 21.0682
+      }
+    ]
+  },
+  "1000hr_datasets_B": {
+    "id": "1000hr datasets B",
+    "description": "~1000 h - Greedy by smallest hours first (more tasks, many roots).",
+    "total_hours": 1003.6475,
+    "datasets": [
+      {
+        "name": "disk-7_Triangular_building_blocks_boxed_v30",
+        "hours": 13.1435
+      },
+      {
+        "name": "disk-13_Fold_the_towel_6_v30",
+        "hours": 12.991
+      },
+      {
+        "name": "disk-1_Badminton_shuttlecock_storage_v30",
+        "hours": 12.9611
+      },
+      {
+        "name": "disk-3_storage_clips_ms-M202601040001_v30",
+        "hours": 12.961
+      },
+      {
+        "name": "disk-12_Make_a_sandwich_v30",
+        "hours": 12.9073
+      },
+      {
+        "name": "disk-5_Hanging_accessories_v30",
+        "hours": 12.9033
+      },
+      {
+        "name": "disk-4_Clean_the_wok_v30",
+        "hours": 12.8894
+      },
+      {
+        "name": "disk-2_flod_dishes_chopsticks_ms-M202510150006_v30",
+        "hours": 12.8743
+      },
+      {
+        "name": "disk-10_Storage_pink_clips_v30",
+        "hours": 12.8465
+      },
+      {
+        "name": "disk-13_fold_towels_1_v30",
+        "hours": 12.7322
+      },
+      {
+        "name": "disk-5_Collecting_trash_v30",
+        "hours": 12.6485
+      },
+      {
+        "name": "disk-3_take_out_clips_right_ms-M202512190003_v30",
+        "hours": 12.6085
+      },
+      {
+        "name": "disk-14_Making_roasted_chicken_necks_v30",
+        "hours": 12.4915
+      },
+      {
+        "name": "disk-7_Tissue_Box_Packaging_v30",
+        "hours": 12.4546
+      },
+      {
+        "name": "disk-13_fold_towels_22_v30",
+        "hours": 12.3771
+      },
+      {
+        "name": "disk-1_fold_towels1_v30",
+        "hours": 12.3167
+      },
+      {
+        "name": "disk-2_cotton-blue_ms-M202511180007_v30",
+        "hours": 12.3055
+      },
+      {
+        "name": "disk-3_place_drinks_ms-M202512230001_v30",
+        "hours": 12.2865
+      },
+      {
+        "name": "disk-5_Billiards_v30",
+        "hours": 12.2093
+      },
+      {
+        "name": "disk-2_put_knife_ms-M202502260002_v30",
+        "hours": 12.0783
+      },
+      {
+        "name": "disk-10_Round_Building_Blocks_Packed_in_a_Box_v30",
+        "hours": 11.9022
+      },
+      {
+        "name": "disk-2_fold_clothes_brown_ms-M202511250001_v30",
+        "hours": 11.889
+      },
+      {
+        "name": "disk-10_Storage_of_green_glass_beads_v30",
+        "hours": 11.8515
+      },
+      {
+        "name": "disk-14_Paper_Cup_Classificartion_Positioning_v30",
+        "hours": 11.8259
+      },
+      {
+        "name": "disk-12_Kitchenware_Cleaning_v30",
+        "hours": 11.7967
+      },
+      {
+        "name": "disk-4_Kitchenware_Cleaning_v30",
+        "hours": 11.7967
+      },
+      {
+        "name": "disk-3_polyester-dapple_grey_ms-M202512100004_v30",
+        "hours": 11.5582
+      },
+      {
+        "name": "disk-11_Making_grilled_sausages_v30",
+        "hours": 11.5145
+      },
+      {
+        "name": "disk-10_Storage_brown_clips_v30",
+        "hours": 11.5072
+      },
+      {
+        "name": "disk-13_fold_towels_4_v30",
+        "hours": 11.4668
+      },
+      {
+        "name": "disk-7_Storing_yellow_paper_cups_v30",
+        "hours": 11.4246
+      },
+      {
+        "name": "disk-12_Recycling_scissors_v30",
+        "hours": 11.3662
+      },
+      {
+        "name": "disk-12_Mouse_stoage_v30",
+        "hours": 11.3449
+      },
+      {
+        "name": "disk-11_Light_Rose_Red_Storage_Clips_v30",
+        "hours": 11.2695
+      },
+      {
+        "name": "disk-1_Storage_pen_v30",
+        "hours": 11.2538
+      },
+      {
+        "name": "disk-11_Stack_red_paper_cups_v30",
+        "hours": 11.2475
+      },
+      {
+        "name": "disk-6_Wash_the_bath_towels_v30",
+        "hours": 11.1629
+      },
+      {
+        "name": "disk-2_clothes_into_frame_ms-M202512230004_v30",
+        "hours": 11.1065
+      },
+      {
+        "name": "disk-2_cotton-dark_blue_with_whiter_ms-M202511180001_v30",
+        "hours": 11.0718
+      },
+      {
+        "name": "disk-2_plug_charger_msM202510290001_v30",
+        "hours": 11.0683
+      },
+      {
+        "name": "disk-2_fold_vests_black_ms-M2025003280005_v30",
+        "hours": 10.9583
+      },
+      {
+        "name": "disk-13_fold_towels_5_v30",
+        "hours": 10.9546
+      },
+      {
+        "name": "disk-10_Vegetables_in_a_Basket_v30",
+        "hours": 10.9072
+      },
+      {
+        "name": "disk-11_Hair_Tie_Qrganizer_v30",
+        "hours": 10.89
+      },
+      {
+        "name": "disk-1_fold_towels2_v30",
+        "hours": 10.7905
+      },
+      {
+        "name": "disk-9_Blue_storage_paper_cups_v30",
+        "hours": 10.7384
+      },
+      {
+        "name": "disk-1_Stacking_cups_v30",
+        "hours": 10.6728
+      },
+      {
+        "name": "disk-14_White_soup_bowl_basket_v30",
+        "hours": 10.6518
+      },
+      {
+        "name": "disk-3_tacked_shorts_gray_ms-M202512100003_v30",
+        "hours": 10.6422
+      },
+      {
+        "name": "disk-8_Edible_Salt_Canning_v30",
+        "hours": 10.3911
+      },
+      {
+        "name": "disk-3_folding_clothes_cotton_grass-M202512030001_v30",
+        "hours": 10.3767
+      },
+      {
+        "name": "disk-11_Take_out_the_vegetables_v30",
+        "hours": 10.2303
+      },
+      {
+        "name": "disk-2_classification_fruits_vegetable-M202510150005_v30",
+        "hours": 10.227
+      },
+      {
+        "name": "disk-7_Storage_mooncake_toy_v30",
+        "hours": 10.2054
+      },
+      {
+        "name": "disk-2_store_socks_ms-M202510150001_v30",
+        "hours": 10.1546
+      },
+      {
+        "name": "disk-2_unscrew_test_tube_ms-M202510200003_v30",
+        "hours": 9.9895
+      },
+      {
+        "name": "disk-10_Mooncake_plating_v30",
+        "hours": 9.942
+      },
+      {
+        "name": "disk-11_Shoe_Cabinet_Stationery_Storage_2_v30",
+        "hours": 9.8938
+      },
+      {
+        "name": "disk-2_fold_towel_ms-M2025102300004_v30",
+        "hours": 9.8643
+      },
+      {
+        "name": "disk-3_tacked_shorts_apricot_ms-M202512100001_v30",
+        "hours": 9.8137
+      },
+      {
+        "name": "disk-10_Take_out_the_fruit_v30",
+        "hours": 9.7844
+      },
+      {
+        "name": "disk-3_stacked_short_Khaki_ms_v30",
+        "hours": 9.7512
+      },
+      {
+        "name": "disk-1_Stapler_binds_staples_v30",
+        "hours": 9.7254
+      },
+      {
+        "name": "disk-12_Reset_the_seasoning_box_v30",
+        "hours": 9.6488
+      },
+      {
+        "name": "disk-3_tacked_shorts_black_ms-M202512100002_v30",
+        "hours": 9.4046
+      },
+      {
+        "name": "disk-1_Oyster_Sauce_Five-Spice_Powder_1_v30",
+        "hours": 9.2804
+      },
+      {
+        "name": "disk-2_folded_short_grey_ms_v30",
+        "hours": 9.2705
+      },
+      {
+        "name": "disk-5_Hair_Clip_Organizer_v30",
+        "hours": 9.2381
+      },
+      {
+        "name": "disk-2_steamed_eggs-M202510150004_v30",
+        "hours": 9.1922
+      },
+      {
+        "name": "disk-2_hanging_water_cup_ms-M202501220002_v30",
+        "hours": 8.9358
+      },
+      {
+        "name": "disk-13_fold_towels_2_v30",
+        "hours": 8.8636
+      },
+      {
+        "name": "disk-5_Breakfast_plating_v30",
+        "hours": 8.8608
+      },
+      {
+        "name": "disk-1_fold_towels_v30",
+        "hours": 8.8171
+      },
+      {
+        "name": "disk-3_place_headphones_right_ms-M202601080002_v30",
+        "hours": 8.7917
+      },
+      {
+        "name": "disk-2_put_medicine_back_box_ms-M20251015002_v30",
+        "hours": 8.5016
+      },
+      {
+        "name": "disk-3_stacked_short_brown_ms-M202511270001_v30",
+        "hours": 8.4473
+      },
+      {
+        "name": "disk-2_spell_good_ms-M202503280001_v30",
+        "hours": 8.273
+      },
+      {
+        "name": "disk-3_place_potted_plant_ms-M202512280001_v30",
+        "hours": 8.1241
+      },
+      {
+        "name": "disk-2_透明试管的放置_ms__v30",
+        "hours": 7.9718
+      },
+      {
+        "name": "disk-3_number_crunching_ms-M202512190001_v30",
+        "hours": 7.8766
+      },
+      {
+        "name": "disk-2_place_fork_ms-M202501220004_v30",
+        "hours": 7.654
+      },
+      {
+        "name": "disk-2_place_eggs_ms-M202501220003_v30",
+        "hours": 7.4851
+      },
+      {
+        "name": "disk-2_tablespoon_sorting_ms-M202510150003_v30",
+        "hours": 7.4453
+      },
+      {
+        "name": "disk-5_Arrange_the_number_7_v30",
+        "hours": 7.4011
+      },
+      {
+        "name": "disk-3_storage_clips_right_ms-M202512190002_v30",
+        "hours": 7.3505
+      },
+      {
+        "name": "disk-1_Storage_Tray_v30",
+        "hours": 7.3261
+      },
+      {
+        "name": "disk-2_storing_fruits_ms-M202502170007_v30",
+        "hours": 7.2532
+      },
+      {
+        "name": "disk-3_Storage_bone_dish_v30",
+        "hours": 7.0244
+      },
+      {
+        "name": "disk-12_Shoe_boxing_v30",
+        "hours": 6.977
+      },
+      {
+        "name": "disk-2_remove_knife_ms-M202502260003_v30",
+        "hours": 6.6639
+      },
+      {
+        "name": "disk-7_Plating_mooncakes_v30",
+        "hours": 6.6478
+      },
+      {
+        "name": "disk-11_Shoe_Cabinet_Stationery_Storage_3_v30",
+        "hours": 6.5035
+      },
+      {
+        "name": "disk-1_Oyster_Sauce_Five-Spice_Powder_v30",
+        "hours": 6.1714
+      },
+      {
+        "name": "disk-1_Place_the_wok_on_the_stove_v30",
+        "hours": 5.9533
+      },
+      {
+        "name": "disk-1_Tennis_storage_v30",
+        "hours": 5.9273
+      },
+      {
+        "name": "disk-1_Mineral_water_bottle_v30",
+        "hours": 5.706
+      },
+      {
+        "name": "disk-2_place_cup_ms-M202502150003_v30",
+        "hours": 4.9639
+      },
+      {
+        "name": "disk-3_pick_coke_right_ms-M202512230002_v30",
+        "hours": 4.8692
+      },
+      {
+        "name": "disk-11_Storage_Hooks_v30",
+        "hours": 4.7851
+      },
+      {
+        "name": "disk-1_folding_clothes_cotton_grass-M202512030001_v30",
+        "hours": 4.4583
+      },
+      {
+        "name": "disk-13_fold_towels_3_v30",
+        "hours": 3.3396
+      },
+      {
+        "name": "disk-1_Arrange_the_number_7_v30",
+        "hours": 2.2775
+      }
+    ]
+  },
+  "1000hr_datasets_C": {
+    "id": "1000hr datasets C",
+    "description": "~1000 h - Random subset search minimizing distance to target hours (from cobot_magic_raw_lerobot_summary.md).",
+    "total_hours": 1000.0497,
+    "datasets": [
+      {
+        "name": "disk-3_Storage_Coffee_v30",
+        "hours": 35.6499
+      },
+      {
+        "name": "disk-8_Keycap_storage_v30",
+        "hours": 35.162
+      },
+      {
+        "name": "disk-5_Fold_yellow_clothes_v30",
+        "hours": 31.9293
+      },
+      {
+        "name": "disk-10_Marker_pen_packaging_v30",
+        "hours": 31.1302
+      },
+      {
+        "name": "disk-6_make_seaweed_soup_v30",
+        "hours": 29.928
+      },
+      {
+        "name": "disk-5_Fruit_Plating_v30",
+        "hours": 27.2089
+      },
+      {
+        "name": "disk-11_Zongzi_Plating_v30",
+        "hours": 26.728
+      },
+      {
+        "name": "disk-3_fold_green_towel_ms-M202601160001_v30",
+        "hours": 23.7852
+      },
+      {
+        "name": "disk-5_Fold_the_purple_towel_v30",
+        "hours": 23.4528
+      },
+      {
+        "name": "disk-9_Donut_Ring_v30",
+        "hours": 22.4857
+      },
+      {
+        "name": "disk-11_Tpes_of_Needles_and_Threds_v30",
+        "hours": 21.8223
+      },
+      {
+        "name": "disk-12_Screw_Classification_v30",
+        "hours": 21.5879
+      },
+      {
+        "name": "disk-12_Matryoshka_doll_v30",
+        "hours": 21.3828
+      },
+      {
+        "name": "disk-3_hold_th_marker_right_ms-M202601040003_v30",
+        "hours": 20.199
+      },
+      {
+        "name": "disk-12_Make_a_hamburger_v30",
+        "hours": 20.0377
+      },
+      {
+        "name": "disk-8_Ice_Cube_Storage_Toy_v30",
+        "hours": 19.5187
+      },
+      {
+        "name": "disk-5_Complete_Chinese_Chess_v30",
+        "hours": 19.0614
+      },
+      {
+        "name": "disk-9_Circular_Block_Completion_v30",
+        "hours": 18.7662
+      },
+      {
+        "name": "disk-4_Tidy_up_the_living_room_2_v30",
+        "hours": 18.4642
+      },
+      {
+        "name": "disk-13_Fold_towel_18_v30",
+        "hours": 18.4251
+      },
+      {
+        "name": "disk-7_Take_the_yellow_notebook_v30",
+        "hours": 18.2415
+      },
+      {
+        "name": "disk-6_Tableware_Storage_1_v30",
+        "hours": 17.981
+      },
+      {
+        "name": "disk-13_Storage_Billiards_v30",
+        "hours": 17.8848
+      },
+      {
+        "name": "disk-14_Small_fish_are_packed_into_boxes_in_order_v30",
+        "hours": 17.5135
+      },
+      {
+        "name": "disk-4_Clean_the_steamer_and_the_lid_of_the_pot_v30",
+        "hours": 17.4813
+      },
+      {
+        "name": "disk-11_Clean_up_the_kitchen_counter_1_v30",
+        "hours": 17.2832
+      },
+      {
+        "name": "disk-1_Storing_vegetables_v30",
+        "hours": 17.0251
+      },
+      {
+        "name": "disk-11_Organize_the_kitchen_counter_v30",
+        "hours": 16.7508
+      },
+      {
+        "name": "disk-11_Clean_up_the_kitchen_counter_2_v30",
+        "hours": 16.4541
+      },
+      {
+        "name": "disk-6_Washing_shorts_v30",
+        "hours": 16.3315
+      },
+      {
+        "name": "disk-11_Drawer_Small_Fish_Classification_v30",
+        "hours": 16.2142
+      },
+      {
+        "name": "disk-2_clip_color_classification_ms-M202512230003_v30",
+        "hours": 15.6535
+      },
+      {
+        "name": "disk-6_Set_the_table_1_v30",
+        "hours": 15.591
+      },
+      {
+        "name": "disk-5_Bottle_storage_v30",
+        "hours": 15.5118
+      },
+      {
+        "name": "disk-8_Packing_white_sugar_into_cans_v30",
+        "hours": 15.2389
+      },
+      {
+        "name": "disk-1_Recycle_woks_and_soup_pots_v30",
+        "hours": 14.1895
+      },
+      {
+        "name": "disk-10_Storage_transparent_plastic_cup_v30",
+        "hours": 14.0986
+      },
+      {
+        "name": "disk-14_Making_Chicken_Feet_in_an_Air_Fryer_v30",
+        "hours": 13.9805
+      },
+      {
+        "name": "disk-14_Green_cup_color_positioning_v30",
+        "hours": 13.9311
+      },
+      {
+        "name": "disk-1_Storage_Night_Light_v30",
+        "hours": 13.7388
+      },
+      {
+        "name": "disk-11_Return_the_seasonings_to_their_place_1_v30",
+        "hours": 13.4685
+      },
+      {
+        "name": "disk-13_fold_the_towel_16_v30",
+        "hours": 13.2391
+      },
+      {
+        "name": "disk-9_Blue_storage_clips_v30",
+        "hours": 13.2339
+      },
+      {
+        "name": "disk-10_Storage_pink_clips_v30",
+        "hours": 12.8465
+      },
+      {
+        "name": "disk-13_fold_towels_1_v30",
+        "hours": 12.7322
+      },
+      {
+        "name": "disk-1_fold_towels1_v30",
+        "hours": 12.3167
+      },
+      {
+        "name": "disk-10_Storage_of_green_glass_beads_v30",
+        "hours": 11.8515
+      },
+      {
+        "name": "disk-10_Storage_brown_clips_v30",
+        "hours": 11.5072
+      },
+      {
+        "name": "disk-13_fold_towels_4_v30",
+        "hours": 11.4668
+      },
+      {
+        "name": "disk-2_plug_charger_msM202510290001_v30",
+        "hours": 11.0683
+      },
+      {
+        "name": "disk-10_Vegetables_in_a_Basket_v30",
+        "hours": 10.9072
+      },
+      {
+        "name": "disk-1_Stacking_cups_v30",
+        "hours": 10.6728
+      },
+      {
+        "name": "disk-1_Stapler_binds_staples_v30",
+        "hours": 9.7254
+      },
+      {
+        "name": "disk-5_Breakfast_plating_v30",
+        "hours": 8.8608
+      },
+      {
+        "name": "disk-2_put_medicine_back_box_ms-M20251015002_v30",
+        "hours": 8.5016
+      },
+      {
+        "name": "disk-2_透明试管的放置_ms__v30",
+        "hours": 7.9718
+      },
+      {
+        "name": "disk-5_Arrange_the_number_7_v30",
+        "hours": 7.4011
+      },
+      {
+        "name": "disk-1_folding_clothes_cotton_grass-M202512030001_v30",
+        "hours": 4.4583
+      }
+    ]
+  },
+  "2000hr_datasets_A": {
+    "id": "2000hr datasets A",
+    "description": "~2000 h - Greedy by largest hours first (fewer dataset roots).",
+    "total_hours": 2010.6778,
+    "datasets": [
+      {
+        "name": "disk-12_Rainbow_Circle_Classification_v30",
+        "hours": 37.0746
+      },
+      {
+        "name": "disk-9_Chess_Set_Packaging_v30",
+        "hours": 36.328
+      },
+      {
+        "name": "disk-3_Storage_Coffee_v30",
+        "hours": 35.6499
+      },
+      {
+        "name": "disk-8_Keycap_storage_v30",
+        "hours": 35.162
+      },
+      {
+        "name": "disk-10_Sorage_for_zongzi_toys_v30",
+        "hours": 32.2096
+      },
+      {
+        "name": "disk-5_Fold_yellow_clothes_v30",
+        "hours": 31.9293
+      },
+      {
+        "name": "disk-10_Marker_pen_packaging_v30",
+        "hours": 31.1302
+      },
+      {
+        "name": "disk-7_Steamed_rice_dumplings_v30",
+        "hours": 30.8461
+      },
+      {
+        "name": "disk-9_Earplug_storage_v30",
+        "hours": 30.3786
+      },
+      {
+        "name": "disk-6_Cooking_with_a_steamer_v30",
+        "hours": 30.06
+      },
+      {
+        "name": "disk-6_make_seaweed_soup_v30",
+        "hours": 29.928
+      },
+      {
+        "name": "disk-2_Layered_white_short-sleeve_shirt_v30",
+        "hours": 27.6814
+      },
+      {
+        "name": "disk-5_Fruit_Plating_v30",
+        "hours": 27.2089
+      },
+      {
+        "name": "disk-11_Zongzi_Plating_v30",
+        "hours": 26.728
+      },
+      {
+        "name": "disk-1_storage_long_tail_cilps_v30",
+        "hours": 26.5611
+      },
+      {
+        "name": "disk-1_Toy_storage_v30",
+        "hours": 26.4008
+      },
+      {
+        "name": "disk-5_FoId_whie_cIothes_1_v30",
+        "hours": 26.001
+      },
+      {
+        "name": "disk-5_hand_grip_board_v30",
+        "hours": 25.5121
+      },
+      {
+        "name": "disk-5_Hand_paddle_v30",
+        "hours": 24.9416
+      },
+      {
+        "name": "disk-7_Square_Block_Completion_v30",
+        "hours": 24.6365
+      },
+      {
+        "name": "disk-7_Skewer_meat_v30",
+        "hours": 24.1732
+      },
+      {
+        "name": "disk-13_Fold_the_towel_17_v30",
+        "hours": 24.0212
+      },
+      {
+        "name": "disk-3_fold_green_towel_ms-M202601160001_v30",
+        "hours": 23.7852
+      },
+      {
+        "name": "disk-2_fold_blue_bar_towel-M202601160003_v30",
+        "hours": 23.6924
+      },
+      {
+        "name": "disk-5_Fold_the_purple_towel_v30",
+        "hours": 23.4528
+      },
+      {
+        "name": "disk-3_fold_elk_towel_ms-M202601160004_v30",
+        "hours": 23.3464
+      },
+      {
+        "name": "disk-6_Washing_vegetables_6_v30",
+        "hours": 22.6887
+      },
+      {
+        "name": "disk-9_Donut_Ring_v30",
+        "hours": 22.4857
+      },
+      {
+        "name": "disk-11_Tidy_up_the_living_room_v30",
+        "hours": 22.3927
+      },
+      {
+        "name": "disk-3_fold_purple_towel_ms-M202601160002_v30",
+        "hours": 22.1659
+      },
+      {
+        "name": "disk-11_Tpes_of_Needles_and_Threds_v30",
+        "hours": 21.8223
+      },
+      {
+        "name": "disk-6_Tableware_Storage_2_v30",
+        "hours": 21.7768
+      },
+      {
+        "name": "disk-12_Screw_Classification_v30",
+        "hours": 21.5879
+      },
+      {
+        "name": "disk-13_Fold_the_towel_13_v30",
+        "hours": 21.4985
+      },
+      {
+        "name": "disk-7_Storage_green_paper_cups_v30",
+        "hours": 21.4202
+      },
+      {
+        "name": "disk-12_Matryoshka_doll_v30",
+        "hours": 21.3828
+      },
+      {
+        "name": "disk-1_Make_coffee_v30",
+        "hours": 21.2333
+      },
+      {
+        "name": "disk-10_Red_storage_clips_v30",
+        "hours": 21.0682
+      },
+      {
+        "name": "disk-9_Clip_Classification_v30",
+        "hours": 20.987
+      },
+      {
+        "name": "disk-7_Tooth_brushing_supplies_v30",
+        "hours": 20.7852
+      },
+      {
+        "name": "disk-6_Bedroom_tidying2_v30",
+        "hours": 20.5865
+      },
+      {
+        "name": "disk-3_storage_plushie_ms-M202512280002_v30",
+        "hours": 20.3558
+      },
+      {
+        "name": "disk-3_hold_th_marker_right_ms-M202601040003_v30",
+        "hours": 20.199
+      },
+      {
+        "name": "disk-8_Make_iced_Coke_v30",
+        "hours": 20.1421
+      },
+      {
+        "name": "disk-12_Making_steak_v30",
+        "hours": 20.1388
+      },
+      {
+        "name": "disk-13_storage_flower_v30",
+        "hours": 20.0859
+      },
+      {
+        "name": "disk-12_Make_a_hamburger_v30",
+        "hours": 20.0377
+      },
+      {
+        "name": "disk-3_storage_scissors_stapler_folder_ms-M202511280001_v30",
+        "hours": 20.0265
+      },
+      {
+        "name": "disk-4_Oganize_the_seasonings_v30",
+        "hours": 19.9412
+      },
+      {
+        "name": "disk-13_Fold_towel_10_v30",
+        "hours": 19.8475
+      },
+      {
+        "name": "disk-2_categorized_tableware_ms-M202510200001_v30",
+        "hours": 19.7316
+      },
+      {
+        "name": "disk-3_fold_white_towel_ms-M20260108003_v30",
+        "hours": 19.6023
+      },
+      {
+        "name": "disk-8_Ice_Cube_Storage_Toy_v30",
+        "hours": 19.5187
+      },
+      {
+        "name": "disk-4_Bedroom_tidying3_v30",
+        "hours": 19.4932
+      },
+      {
+        "name": "disk-7_Red_paper_cupstorage_v30",
+        "hours": 19.4831
+      },
+      {
+        "name": "disk-4_Bedroom_tidying_v30",
+        "hours": 19.4375
+      },
+      {
+        "name": "disk-2_fold_brown_strips_towel_ms-M202512300001_v30",
+        "hours": 19.3363
+      },
+      {
+        "name": "disk-12_Steak_plating_v30",
+        "hours": 19.209
+      },
+      {
+        "name": "disk-5_Complete_Chinese_Chess_v30",
+        "hours": 19.0614
+      },
+      {
+        "name": "disk-2_fold_bee_towel_ms-M202601190001_v30",
+        "hours": 19.0334
+      },
+      {
+        "name": "disk-6_Cleaning_short_sleeves_v30",
+        "hours": 18.9062
+      },
+      {
+        "name": "disk-8_Make_chilled_mineral_water_v30",
+        "hours": 18.8683
+      },
+      {
+        "name": "disk-9_Building_block_rocket_model_v30",
+        "hours": 18.7679
+      },
+      {
+        "name": "disk-9_Circular_Block_Completion_v30",
+        "hours": 18.7662
+      },
+      {
+        "name": "disk-14_Hair_tie_loop_v30",
+        "hours": 18.6245
+      },
+      {
+        "name": "disk-5_Folded_Maple_Leaf_Towel_v30",
+        "hours": 18.6126
+      },
+      {
+        "name": "disk-6_Cleaning_long_sleeves_v30",
+        "hours": 18.6007
+      },
+      {
+        "name": "disk-4_Tidy_up_the_living_room_2_v30",
+        "hours": 18.4642
+      },
+      {
+        "name": "disk-13_Fold_towel_18_v30",
+        "hours": 18.4251
+      },
+      {
+        "name": "disk-14_Stack_of_yellow_paper_cups_v30",
+        "hours": 18.3577
+      },
+      {
+        "name": "disk-7_Take_the_yellow_notebook_v30",
+        "hours": 18.2415
+      },
+      {
+        "name": "disk-6_Table_stationery_organizer_v30",
+        "hours": 18.1779
+      },
+      {
+        "name": "disk-4_Storing_clothes_on_the_sofa_v30",
+        "hours": 18.1522
+      },
+      {
+        "name": "disk-10_Sky_blue_storage_clips_v30",
+        "hours": 18.083
+      },
+      {
+        "name": "disk-9_BBQ_Plating_v30",
+        "hours": 18.029
+      },
+      {
+        "name": "disk-8_Making_barbecue_v30",
+        "hours": 17.9841
+      },
+      {
+        "name": "disk-6_Tableware_Storage_1_v30",
+        "hours": 17.981
+      },
+      {
+        "name": "disk-13_Fold_towel_15_v30",
+        "hours": 17.9122
+      },
+      {
+        "name": "disk-13_Storage_Billiards_v30",
+        "hours": 17.8848
+      },
+      {
+        "name": "disk-10_Storage_orange_clips_v30",
+        "hours": 17.8197
+      },
+      {
+        "name": "disk-12_Sewing_Kit_Storage_Box_v30",
+        "hours": 17.6524
+      },
+      {
+        "name": "disk-8_Plate_the_donuts_v30",
+        "hours": 17.5287
+      },
+      {
+        "name": "disk-14_Small_fish_are_packed_into_boxes_in_order_v30",
+        "hours": 17.5135
+      },
+      {
+        "name": "disk-4_Clean_the_steamer_and_the_lid_of_the_pot_v30",
+        "hours": 17.4813
+      },
+      {
+        "name": "disk-14_Red_paper_cup_color_positioning_v30",
+        "hours": 17.4038
+      },
+      {
+        "name": "disk-2_chip_classification_ms-M202601040002_v30",
+        "hours": 17.2923
+      },
+      {
+        "name": "disk-11_Clean_up_the_kitchen_counter_1_v30",
+        "hours": 17.2832
+      },
+      {
+        "name": "disk-9_Building_block_tree_model_v30",
+        "hours": 17.095
+      },
+      {
+        "name": "disk-1_Storing_vegetables_v30",
+        "hours": 17.0251
+      },
+      {
+        "name": "disk-4_Clean_up_the_kitchen_counter_3_v30",
+        "hours": 16.9213
+      },
+      {
+        "name": "disk-11_Organize_the_kitchen_counter_v30",
+        "hours": 16.7508
+      },
+      {
+        "name": "disk-1_Take_out_the_toy_v30",
+        "hours": 16.67
+      }
+    ]
+  },
+  "2000hr_datasets_B": {
+    "id": "2000hr datasets B",
+    "description": "~2000 h - Greedy by smallest hours first (more tasks, many roots).",
+    "total_hours": 2012.0238,
+    "datasets": [
+      {
+        "name": "disk-11_Organize_the_kitchen_counter_v30",
+        "hours": 16.7508
+      },
+      {
+        "name": "disk-1_Take_out_the_toy_v30",
+        "hours": 16.67
+      },
+      {
+        "name": "disk-13_fold_the_towel_19_v30",
+        "hours": 16.6356
+      },
+      {
+        "name": "disk-14_Drawer_Headband_Organizer_v30",
+        "hours": 16.5169
+      },
+      {
+        "name": "disk-11_Clean_up_the_kitchen_counter_2_v30",
+        "hours": 16.4541
+      },
+      {
+        "name": "disk-4_Shoe_Rack_1_v30",
+        "hours": 16.3359
+      },
+      {
+        "name": "disk-6_Washing_shorts_v30",
+        "hours": 16.3315
+      },
+      {
+        "name": "disk-9_Drawer_Block_Sorting_v30",
+        "hours": 16.3128
+      },
+      {
+        "name": "disk-11_Drawer_Small_Fish_Classification_v30",
+        "hours": 16.2142
+      },
+      {
+        "name": "disk-6_Wash_towels_v30",
+        "hours": 16.1496
+      },
+      {
+        "name": "disk-13_fold_towel_7_v30",
+        "hours": 16.1071
+      },
+      {
+        "name": "disk-9_Building_block_house_model_v30",
+        "hours": 15.998
+      },
+      {
+        "name": "disk-3_fold_pink_towel_ms-M202512280003_v30",
+        "hours": 15.9005
+      },
+      {
+        "name": "disk-12_make_dishes_v30",
+        "hours": 15.7355
+      },
+      {
+        "name": "disk-4_make_dishes_v30",
+        "hours": 15.7355
+      },
+      {
+        "name": "disk-2_clip_color_classification_ms-M202512230003_v30",
+        "hours": 15.6535
+      },
+      {
+        "name": "disk-6_Set_the_table_1_v30",
+        "hours": 15.591
+      },
+      {
+        "name": "disk-8_Heat_the_donut_v30",
+        "hours": 15.583
+      },
+      {
+        "name": "disk-5_Bottle_storage_v30",
+        "hours": 15.5118
+      },
+      {
+        "name": "disk-9_Bottle_storage_v30",
+        "hours": 15.5118
+      },
+      {
+        "name": "disk-3_layered_turquoise_green_T_shirt_ms-M202601190001_v30",
+        "hours": 15.4544
+      },
+      {
+        "name": "disk-10_Storage_deep_rose_red_clips_v30",
+        "hours": 15.3474
+      },
+      {
+        "name": "disk-6_Bedroom_tidying1_v30",
+        "hours": 15.3337
+      },
+      {
+        "name": "disk-8_Packing_white_sugar_into_cans_v30",
+        "hours": 15.2389
+      },
+      {
+        "name": "disk-8_Donut_toy_packaging_v30",
+        "hours": 15.1781
+      },
+      {
+        "name": "disk-8_Make_Chilled_Orange_Juice_v30",
+        "hours": 15.142
+      },
+      {
+        "name": "disk-7_Roast_chicken_leg_v30",
+        "hours": 15.1156
+      },
+      {
+        "name": "disk-8_Five_spice_powder_can_v30",
+        "hours": 14.9919
+      },
+      {
+        "name": "disk-8_Making_Baked_Potatoes_v30",
+        "hours": 14.9737
+      },
+      {
+        "name": "disk-7_Take_the_black_notebook_v30",
+        "hours": 14.9604
+      },
+      {
+        "name": "disk-12_Storage_dining_bowls_v30",
+        "hours": 14.9214
+      },
+      {
+        "name": "disk-11_Heat_the_zongzi_v30",
+        "hours": 14.8099
+      },
+      {
+        "name": "disk-9_Bath_products_v30",
+        "hours": 14.7907
+      },
+      {
+        "name": "disk-2_dish_recycling_ms-M202510200002_v30",
+        "hours": 14.785
+      },
+      {
+        "name": "disk-3_hold_th_marker_ms-M202512160001_v30",
+        "hours": 14.7351
+      },
+      {
+        "name": "disk-10_Square_blocks_packing_v30",
+        "hours": 14.7099
+      },
+      {
+        "name": "disk-7_Take_the_patterned_notebook_v30",
+        "hours": 14.6713
+      },
+      {
+        "name": "disk-10_Storage_for_white_glass_beads_v30",
+        "hours": 14.633
+      },
+      {
+        "name": "disk-9_Chicken_essence_can_v30",
+        "hours": 14.6095
+      },
+      {
+        "name": "disk-2_pen_inside_ms-M20251015007_v30",
+        "hours": 14.6073
+      },
+      {
+        "name": "disk-12_Mouse_packing_v30",
+        "hours": 14.5548
+      },
+      {
+        "name": "disk-10_Heat_the_mooncake_v30",
+        "hours": 14.5523
+      },
+      {
+        "name": "disk-13_fold_the_towel_8_v30",
+        "hours": 14.5214
+      },
+      {
+        "name": "disk-8_Pepper_powder_packaging_v30",
+        "hours": 14.4553
+      },
+      {
+        "name": "disk-14_Stack_of_green_paper_cups_v30",
+        "hours": 14.2122
+      },
+      {
+        "name": "disk-1_Recycle_woks_and_soup_pots_v30",
+        "hours": 14.1895
+      },
+      {
+        "name": "disk-10_Storage_transparent_plastic_cup_v30",
+        "hours": 14.0986
+      },
+      {
+        "name": "disk-1_Storage_figurine_v30",
+        "hours": 14.0892
+      },
+      {
+        "name": "disk-10_Storage_yellow_clips_v30",
+        "hours": 14.0798
+      },
+      {
+        "name": "disk-13_fold_the_towel_12_v30",
+        "hours": 14.0766
+      },
+      {
+        "name": "disk-8_Nestling_doll_covers_he_lid_v30",
+        "hours": 14.0737
+      },
+      {
+        "name": "disk-4_Stir-fried_pork_with_chili_peppers_v30",
+        "hours": 14.0451
+      },
+      {
+        "name": "disk-14_Making_Chicken_Feet_in_an_Air_Fryer_v30",
+        "hours": 13.9805
+      },
+      {
+        "name": "disk-14_Green_cup_color_positioning_v30",
+        "hours": 13.9311
+      },
+      {
+        "name": "disk-10_Storing_red_glass_beads_v30",
+        "hours": 13.8312
+      },
+      {
+        "name": "disk-13_fold_14_v30",
+        "hours": 13.8032
+      },
+      {
+        "name": "disk-14_Storage_of_red_hollow_beads_v30",
+        "hours": 13.7544
+      },
+      {
+        "name": "disk-1_Storage_Night_Light_v30",
+        "hours": 13.7388
+      },
+      {
+        "name": "disk-13_Fold_the_towel_11_v30",
+        "hours": 13.7059
+      },
+      {
+        "name": "disk-10_Storage_green_clips_v30",
+        "hours": 13.6273
+      },
+      {
+        "name": "disk-8_Making_roasted_pumpkin_v30",
+        "hours": 13.4786
+      },
+      {
+        "name": "disk-11_Return_the_seasonings_to_their_place_1_v30",
+        "hours": 13.4685
+      },
+      {
+        "name": "disk-3_picks_oriental_leaves_right_ms-M202601080001_v30",
+        "hours": 13.3511
+      },
+      {
+        "name": "disk-8_Fan_packaging_v30",
+        "hours": 13.2563
+      },
+      {
+        "name": "disk-13_fold_the_towel_16_v30",
+        "hours": 13.2391
+      },
+      {
+        "name": "disk-9_Blue_storage_clips_v30",
+        "hours": 13.2339
+      },
+      {
+        "name": "disk-13_Fold_the_towel_9_v30",
+        "hours": 13.1747
+      },
+      {
+        "name": "disk-8_Clean_the_pencil_sharpener_v30",
+        "hours": 13.1449
+      },
+      {
+        "name": "disk-7_Triangular_building_blocks_boxed_v30",
+        "hours": 13.1435
+      },
+      {
+        "name": "disk-13_Fold_the_towel_6_v30",
+        "hours": 12.991
+      },
+      {
+        "name": "disk-1_Badminton_shuttlecock_storage_v30",
+        "hours": 12.9611
+      },
+      {
+        "name": "disk-3_storage_clips_ms-M202601040001_v30",
+        "hours": 12.961
+      },
+      {
+        "name": "disk-12_Make_a_sandwich_v30",
+        "hours": 12.9073
+      },
+      {
+        "name": "disk-5_Hanging_accessories_v30",
+        "hours": 12.9033
+      },
+      {
+        "name": "disk-4_Clean_the_wok_v30",
+        "hours": 12.8894
+      },
+      {
+        "name": "disk-2_flod_dishes_chopsticks_ms-M202510150006_v30",
+        "hours": 12.8743
+      },
+      {
+        "name": "disk-10_Storage_pink_clips_v30",
+        "hours": 12.8465
+      },
+      {
+        "name": "disk-13_fold_towels_1_v30",
+        "hours": 12.7322
+      },
+      {
+        "name": "disk-5_Collecting_trash_v30",
+        "hours": 12.6485
+      },
+      {
+        "name": "disk-3_take_out_clips_right_ms-M202512190003_v30",
+        "hours": 12.6085
+      },
+      {
+        "name": "disk-14_Making_roasted_chicken_necks_v30",
+        "hours": 12.4915
+      },
+      {
+        "name": "disk-7_Tissue_Box_Packaging_v30",
+        "hours": 12.4546
+      },
+      {
+        "name": "disk-13_fold_towels_22_v30",
+        "hours": 12.3771
+      },
+      {
+        "name": "disk-1_fold_towels1_v30",
+        "hours": 12.3167
+      },
+      {
+        "name": "disk-2_cotton-blue_ms-M202511180007_v30",
+        "hours": 12.3055
+      },
+      {
+        "name": "disk-3_place_drinks_ms-M202512230001_v30",
+        "hours": 12.2865
+      },
+      {
+        "name": "disk-5_Billiards_v30",
+        "hours": 12.2093
+      },
+      {
+        "name": "disk-2_put_knife_ms-M202502260002_v30",
+        "hours": 12.0783
+      },
+      {
+        "name": "disk-10_Round_Building_Blocks_Packed_in_a_Box_v30",
+        "hours": 11.9022
+      },
+      {
+        "name": "disk-2_fold_clothes_brown_ms-M202511250001_v30",
+        "hours": 11.889
+      },
+      {
+        "name": "disk-10_Storage_of_green_glass_beads_v30",
+        "hours": 11.8515
+      },
+      {
+        "name": "disk-14_Paper_Cup_Classificartion_Positioning_v30",
+        "hours": 11.8259
+      },
+      {
+        "name": "disk-12_Kitchenware_Cleaning_v30",
+        "hours": 11.7967
+      },
+      {
+        "name": "disk-4_Kitchenware_Cleaning_v30",
+        "hours": 11.7967
+      },
+      {
+        "name": "disk-3_polyester-dapple_grey_ms-M202512100004_v30",
+        "hours": 11.5582
+      },
+      {
+        "name": "disk-11_Making_grilled_sausages_v30",
+        "hours": 11.5145
+      },
+      {
+        "name": "disk-10_Storage_brown_clips_v30",
+        "hours": 11.5072
+      },
+      {
+        "name": "disk-13_fold_towels_4_v30",
+        "hours": 11.4668
+      },
+      {
+        "name": "disk-7_Storing_yellow_paper_cups_v30",
+        "hours": 11.4246
+      },
+      {
+        "name": "disk-12_Recycling_scissors_v30",
+        "hours": 11.3662
+      },
+      {
+        "name": "disk-12_Mouse_stoage_v30",
+        "hours": 11.3449
+      },
+      {
+        "name": "disk-11_Light_Rose_Red_Storage_Clips_v30",
+        "hours": 11.2695
+      },
+      {
+        "name": "disk-1_Storage_pen_v30",
+        "hours": 11.2538
+      },
+      {
+        "name": "disk-11_Stack_red_paper_cups_v30",
+        "hours": 11.2475
+      },
+      {
+        "name": "disk-6_Wash_the_bath_towels_v30",
+        "hours": 11.1629
+      },
+      {
+        "name": "disk-2_clothes_into_frame_ms-M202512230004_v30",
+        "hours": 11.1065
+      },
+      {
+        "name": "disk-2_cotton-dark_blue_with_whiter_ms-M202511180001_v30",
+        "hours": 11.0718
+      },
+      {
+        "name": "disk-2_plug_charger_msM202510290001_v30",
+        "hours": 11.0683
+      },
+      {
+        "name": "disk-2_fold_vests_black_ms-M2025003280005_v30",
+        "hours": 10.9583
+      },
+      {
+        "name": "disk-13_fold_towels_5_v30",
+        "hours": 10.9546
+      },
+      {
+        "name": "disk-10_Vegetables_in_a_Basket_v30",
+        "hours": 10.9072
+      },
+      {
+        "name": "disk-11_Hair_Tie_Qrganizer_v30",
+        "hours": 10.89
+      },
+      {
+        "name": "disk-1_fold_towels2_v30",
+        "hours": 10.7905
+      },
+      {
+        "name": "disk-9_Blue_storage_paper_cups_v30",
+        "hours": 10.7384
+      },
+      {
+        "name": "disk-1_Stacking_cups_v30",
+        "hours": 10.6728
+      },
+      {
+        "name": "disk-14_White_soup_bowl_basket_v30",
+        "hours": 10.6518
+      },
+      {
+        "name": "disk-3_tacked_shorts_gray_ms-M202512100003_v30",
+        "hours": 10.6422
+      },
+      {
+        "name": "disk-8_Edible_Salt_Canning_v30",
+        "hours": 10.3911
+      },
+      {
+        "name": "disk-3_folding_clothes_cotton_grass-M202512030001_v30",
+        "hours": 10.3767
+      },
+      {
+        "name": "disk-11_Take_out_the_vegetables_v30",
+        "hours": 10.2303
+      },
+      {
+        "name": "disk-2_classification_fruits_vegetable-M202510150005_v30",
+        "hours": 10.227
+      },
+      {
+        "name": "disk-7_Storage_mooncake_toy_v30",
+        "hours": 10.2054
+      },
+      {
+        "name": "disk-2_store_socks_ms-M202510150001_v30",
+        "hours": 10.1546
+      },
+      {
+        "name": "disk-2_unscrew_test_tube_ms-M202510200003_v30",
+        "hours": 9.9895
+      },
+      {
+        "name": "disk-10_Mooncake_plating_v30",
+        "hours": 9.942
+      },
+      {
+        "name": "disk-11_Shoe_Cabinet_Stationery_Storage_2_v30",
+        "hours": 9.8938
+      },
+      {
+        "name": "disk-2_fold_towel_ms-M2025102300004_v30",
+        "hours": 9.8643
+      },
+      {
+        "name": "disk-3_tacked_shorts_apricot_ms-M202512100001_v30",
+        "hours": 9.8137
+      },
+      {
+        "name": "disk-10_Take_out_the_fruit_v30",
+        "hours": 9.7844
+      },
+      {
+        "name": "disk-3_stacked_short_Khaki_ms_v30",
+        "hours": 9.7512
+      },
+      {
+        "name": "disk-1_Stapler_binds_staples_v30",
+        "hours": 9.7254
+      },
+      {
+        "name": "disk-12_Reset_the_seasoning_box_v30",
+        "hours": 9.6488
+      },
+      {
+        "name": "disk-3_tacked_shorts_black_ms-M202512100002_v30",
+        "hours": 9.4046
+      },
+      {
+        "name": "disk-1_Oyster_Sauce_Five-Spice_Powder_1_v30",
+        "hours": 9.2804
+      },
+      {
+        "name": "disk-2_folded_short_grey_ms_v30",
+        "hours": 9.2705
+      },
+      {
+        "name": "disk-5_Hair_Clip_Organizer_v30",
+        "hours": 9.2381
+      },
+      {
+        "name": "disk-2_steamed_eggs-M202510150004_v30",
+        "hours": 9.1922
+      },
+      {
+        "name": "disk-2_hanging_water_cup_ms-M202501220002_v30",
+        "hours": 8.9358
+      },
+      {
+        "name": "disk-13_fold_towels_2_v30",
+        "hours": 8.8636
+      },
+      {
+        "name": "disk-5_Breakfast_plating_v30",
+        "hours": 8.8608
+      },
+      {
+        "name": "disk-1_fold_towels_v30",
+        "hours": 8.8171
+      },
+      {
+        "name": "disk-3_place_headphones_right_ms-M202601080002_v30",
+        "hours": 8.7917
+      },
+      {
+        "name": "disk-2_put_medicine_back_box_ms-M20251015002_v30",
+        "hours": 8.5016
+      },
+      {
+        "name": "disk-3_stacked_short_brown_ms-M202511270001_v30",
+        "hours": 8.4473
+      },
+      {
+        "name": "disk-2_spell_good_ms-M202503280001_v30",
+        "hours": 8.273
+      },
+      {
+        "name": "disk-3_place_potted_plant_ms-M202512280001_v30",
+        "hours": 8.1241
+      },
+      {
+        "name": "disk-2_透明试管的放置_ms__v30",
+        "hours": 7.9718
+      },
+      {
+        "name": "disk-3_number_crunching_ms-M202512190001_v30",
+        "hours": 7.8766
+      },
+      {
+        "name": "disk-2_place_fork_ms-M202501220004_v30",
+        "hours": 7.654
+      },
+      {
+        "name": "disk-2_place_eggs_ms-M202501220003_v30",
+        "hours": 7.4851
+      },
+      {
+        "name": "disk-2_tablespoon_sorting_ms-M202510150003_v30",
+        "hours": 7.4453
+      },
+      {
+        "name": "disk-5_Arrange_the_number_7_v30",
+        "hours": 7.4011
+      },
+      {
+        "name": "disk-3_storage_clips_right_ms-M202512190002_v30",
+        "hours": 7.3505
+      },
+      {
+        "name": "disk-1_Storage_Tray_v30",
+        "hours": 7.3261
+      },
+      {
+        "name": "disk-2_storing_fruits_ms-M202502170007_v30",
+        "hours": 7.2532
+      },
+      {
+        "name": "disk-3_Storage_bone_dish_v30",
+        "hours": 7.0244
+      },
+      {
+        "name": "disk-12_Shoe_boxing_v30",
+        "hours": 6.977
+      },
+      {
+        "name": "disk-2_remove_knife_ms-M202502260003_v30",
+        "hours": 6.6639
+      },
+      {
+        "name": "disk-7_Plating_mooncakes_v30",
+        "hours": 6.6478
+      },
+      {
+        "name": "disk-11_Shoe_Cabinet_Stationery_Storage_3_v30",
+        "hours": 6.5035
+      },
+      {
+        "name": "disk-1_Oyster_Sauce_Five-Spice_Powder_v30",
+        "hours": 6.1714
+      },
+      {
+        "name": "disk-1_Place_the_wok_on_the_stove_v30",
+        "hours": 5.9533
+      },
+      {
+        "name": "disk-1_Tennis_storage_v30",
+        "hours": 5.9273
+      },
+      {
+        "name": "disk-1_Mineral_water_bottle_v30",
+        "hours": 5.706
+      },
+      {
+        "name": "disk-2_place_cup_ms-M202502150003_v30",
+        "hours": 4.9639
+      },
+      {
+        "name": "disk-3_pick_coke_right_ms-M202512230002_v30",
+        "hours": 4.8692
+      },
+      {
+        "name": "disk-11_Storage_Hooks_v30",
+        "hours": 4.7851
+      },
+      {
+        "name": "disk-1_folding_clothes_cotton_grass-M202512030001_v30",
+        "hours": 4.4583
+      },
+      {
+        "name": "disk-13_fold_towels_3_v30",
+        "hours": 3.3396
+      },
+      {
+        "name": "disk-1_Arrange_the_number_7_v30",
+        "hours": 2.2775
+      }
+    ]
+  },
+  "2000hr_datasets_C": {
+    "id": "2000hr datasets C",
+    "description": "~2000 h - Random subset search minimizing distance to target hours (from cobot_magic_raw_lerobot_summary.md).",
+    "total_hours": 2000.0116,
+    "datasets": [
+      {
+        "name": "disk-12_Rainbow_Circle_Classification_v30",
+        "hours": 37.0746
+      },
+      {
+        "name": "disk-3_Storage_Coffee_v30",
+        "hours": 35.6499
+      },
+      {
+        "name": "disk-8_Keycap_storage_v30",
+        "hours": 35.162
+      },
+      {
+        "name": "disk-10_Marker_pen_packaging_v30",
+        "hours": 31.1302
+      },
+      {
+        "name": "disk-9_Earplug_storage_v30",
+        "hours": 30.3786
+      },
+      {
+        "name": "disk-6_Cooking_with_a_steamer_v30",
+        "hours": 30.06
+      },
+      {
+        "name": "disk-6_make_seaweed_soup_v30",
+        "hours": 29.928
+      },
+      {
+        "name": "disk-1_storage_long_tail_cilps_v30",
+        "hours": 26.5611
+      },
+      {
+        "name": "disk-1_Toy_storage_v30",
+        "hours": 26.4008
+      },
+      {
+        "name": "disk-5_hand_grip_board_v30",
+        "hours": 25.5121
+      },
+      {
+        "name": "disk-7_Square_Block_Completion_v30",
+        "hours": 24.6365
+      },
+      {
+        "name": "disk-3_fold_green_towel_ms-M202601160001_v30",
+        "hours": 23.7852
+      },
+      {
+        "name": "disk-2_fold_blue_bar_towel-M202601160003_v30",
+        "hours": 23.6924
+      },
+      {
+        "name": "disk-5_Fold_the_purple_towel_v30",
+        "hours": 23.4528
+      },
+      {
+        "name": "disk-3_fold_elk_towel_ms-M202601160004_v30",
+        "hours": 23.3464
+      },
+      {
+        "name": "disk-6_Washing_vegetables_6_v30",
+        "hours": 22.6887
+      },
+      {
+        "name": "disk-9_Donut_Ring_v30",
+        "hours": 22.4857
+      },
+      {
+        "name": "disk-11_Tidy_up_the_living_room_v30",
+        "hours": 22.3927
+      },
+      {
+        "name": "disk-3_fold_purple_towel_ms-M202601160002_v30",
+        "hours": 22.1659
+      },
+      {
+        "name": "disk-11_Tpes_of_Needles_and_Threds_v30",
+        "hours": 21.8223
+      },
+      {
+        "name": "disk-12_Screw_Classification_v30",
+        "hours": 21.5879
+      },
+      {
+        "name": "disk-13_Fold_the_towel_13_v30",
+        "hours": 21.4985
+      },
+      {
+        "name": "disk-7_Storage_green_paper_cups_v30",
+        "hours": 21.4202
+      },
+      {
+        "name": "disk-10_Red_storage_clips_v30",
+        "hours": 21.0682
+      },
+      {
+        "name": "disk-6_Bedroom_tidying2_v30",
+        "hours": 20.5865
+      },
+      {
+        "name": "disk-3_storage_plushie_ms-M202512280002_v30",
+        "hours": 20.3558
+      },
+      {
+        "name": "disk-8_Make_iced_Coke_v30",
+        "hours": 20.1421
+      },
+      {
+        "name": "disk-12_Making_steak_v30",
+        "hours": 20.1388
+      },
+      {
+        "name": "disk-3_storage_scissors_stapler_folder_ms-M202511280001_v30",
+        "hours": 20.0265
+      },
+      {
+        "name": "disk-4_Bedroom_tidying3_v30",
+        "hours": 19.4932
+      },
+      {
+        "name": "disk-2_fold_bee_towel_ms-M202601190001_v30",
+        "hours": 19.0334
+      },
+      {
+        "name": "disk-6_Cleaning_short_sleeves_v30",
+        "hours": 18.9062
+      },
+      {
+        "name": "disk-9_Building_block_rocket_model_v30",
+        "hours": 18.7679
+      },
+      {
+        "name": "disk-14_Hair_tie_loop_v30",
+        "hours": 18.6245
+      },
+      {
+        "name": "disk-5_Folded_Maple_Leaf_Towel_v30",
+        "hours": 18.6126
+      },
+      {
+        "name": "disk-6_Cleaning_long_sleeves_v30",
+        "hours": 18.6007
+      },
+      {
+        "name": "disk-14_Stack_of_yellow_paper_cups_v30",
+        "hours": 18.3577
+      },
+      {
+        "name": "disk-7_Take_the_yellow_notebook_v30",
+        "hours": 18.2415
+      },
+      {
+        "name": "disk-4_Storing_clothes_on_the_sofa_v30",
+        "hours": 18.1522
+      },
+      {
+        "name": "disk-10_Sky_blue_storage_clips_v30",
+        "hours": 18.083
+      },
+      {
+        "name": "disk-9_BBQ_Plating_v30",
+        "hours": 18.029
+      },
+      {
+        "name": "disk-13_Storage_Billiards_v30",
+        "hours": 17.8848
+      },
+      {
+        "name": "disk-10_Storage_orange_clips_v30",
+        "hours": 17.8197
+      },
+      {
+        "name": "disk-12_Sewing_Kit_Storage_Box_v30",
+        "hours": 17.6524
+      },
+      {
+        "name": "disk-8_Plate_the_donuts_v30",
+        "hours": 17.5287
+      },
+      {
+        "name": "disk-14_Small_fish_are_packed_into_boxes_in_order_v30",
+        "hours": 17.5135
+      },
+      {
+        "name": "disk-4_Clean_the_steamer_and_the_lid_of_the_pot_v30",
+        "hours": 17.4813
+      },
+      {
+        "name": "disk-14_Red_paper_cup_color_positioning_v30",
+        "hours": 17.4038
+      },
+      {
+        "name": "disk-1_Take_out_the_toy_v30",
+        "hours": 16.67
+      },
+      {
+        "name": "disk-4_Shoe_Rack_1_v30",
+        "hours": 16.3359
+      },
+      {
+        "name": "disk-9_Drawer_Block_Sorting_v30",
+        "hours": 16.3128
+      },
+      {
+        "name": "disk-6_Wash_towels_v30",
+        "hours": 16.1496
+      },
+      {
+        "name": "disk-13_fold_towel_7_v30",
+        "hours": 16.1071
+      },
+      {
+        "name": "disk-9_Building_block_house_model_v30",
+        "hours": 15.998
+      },
+      {
+        "name": "disk-2_clip_color_classification_ms-M202512230003_v30",
+        "hours": 15.6535
+      },
+      {
+        "name": "disk-6_Set_the_table_1_v30",
+        "hours": 15.591
+      },
+      {
+        "name": "disk-10_Storage_deep_rose_red_clips_v30",
+        "hours": 15.3474
+      },
+      {
+        "name": "disk-8_Packing_white_sugar_into_cans_v30",
+        "hours": 15.2389
+      },
+      {
+        "name": "disk-8_Donut_toy_packaging_v30",
+        "hours": 15.1781
+      },
+      {
+        "name": "disk-7_Roast_chicken_leg_v30",
+        "hours": 15.1156
+      },
+      {
+        "name": "disk-8_Five_spice_powder_can_v30",
+        "hours": 14.9919
+      },
+      {
+        "name": "disk-7_Take_the_black_notebook_v30",
+        "hours": 14.9604
+      },
+      {
+        "name": "disk-11_Heat_the_zongzi_v30",
+        "hours": 14.8099
+      },
+      {
+        "name": "disk-9_Bath_products_v30",
+        "hours": 14.7907
+      },
+      {
+        "name": "disk-3_hold_th_marker_ms-M202512160001_v30",
+        "hours": 14.7351
+      },
+      {
+        "name": "disk-7_Take_the_patterned_notebook_v30",
+        "hours": 14.6713
+      },
+      {
+        "name": "disk-2_pen_inside_ms-M20251015007_v30",
+        "hours": 14.6073
+      },
+      {
+        "name": "disk-8_Pepper_powder_packaging_v30",
+        "hours": 14.4553
+      },
+      {
+        "name": "disk-14_Stack_of_green_paper_cups_v30",
+        "hours": 14.2122
+      },
+      {
+        "name": "disk-10_Storage_yellow_clips_v30",
+        "hours": 14.0798
+      },
+      {
+        "name": "disk-14_Making_Chicken_Feet_in_an_Air_Fryer_v30",
+        "hours": 13.9805
+      },
+      {
+        "name": "disk-14_Green_cup_color_positioning_v30",
+        "hours": 13.9311
+      },
+      {
+        "name": "disk-10_Storing_red_glass_beads_v30",
+        "hours": 13.8312
+      },
+      {
+        "name": "disk-13_Fold_the_towel_11_v30",
+        "hours": 13.7059
+      },
+      {
+        "name": "disk-10_Storage_green_clips_v30",
+        "hours": 13.6273
+      },
+      {
+        "name": "disk-8_Making_roasted_pumpkin_v30",
+        "hours": 13.4786
+      },
+      {
+        "name": "disk-11_Return_the_seasonings_to_their_place_1_v30",
+        "hours": 13.4685
+      },
+      {
+        "name": "disk-9_Blue_storage_clips_v30",
+        "hours": 13.2339
+      },
+      {
+        "name": "disk-13_Fold_the_towel_9_v30",
+        "hours": 13.1747
+      },
+      {
+        "name": "disk-1_Badminton_shuttlecock_storage_v30",
+        "hours": 12.9611
+      },
+      {
+        "name": "disk-5_Hanging_accessories_v30",
+        "hours": 12.9033
+      },
+      {
+        "name": "disk-10_Storage_pink_clips_v30",
+        "hours": 12.8465
+      },
+      {
+        "name": "disk-5_Collecting_trash_v30",
+        "hours": 12.6485
+      },
+      {
+        "name": "disk-2_cotton-blue_ms-M202511180007_v30",
+        "hours": 12.3055
+      },
+      {
+        "name": "disk-3_place_drinks_ms-M202512230001_v30",
+        "hours": 12.2865
+      },
+      {
+        "name": "disk-2_fold_clothes_brown_ms-M202511250001_v30",
+        "hours": 11.889
+      },
+      {
+        "name": "disk-10_Storage_of_green_glass_beads_v30",
+        "hours": 11.8515
+      },
+      {
+        "name": "disk-14_Paper_Cup_Classificartion_Positioning_v30",
+        "hours": 11.8259
+      },
+      {
+        "name": "disk-3_polyester-dapple_grey_ms-M202512100004_v30",
+        "hours": 11.5582
+      },
+      {
+        "name": "disk-11_Making_grilled_sausages_v30",
+        "hours": 11.5145
+      },
+      {
+        "name": "disk-10_Storage_brown_clips_v30",
+        "hours": 11.5072
+      },
+      {
+        "name": "disk-13_fold_towels_4_v30",
+        "hours": 11.4668
+      },
+      {
+        "name": "disk-12_Recycling_scissors_v30",
+        "hours": 11.3662
+      },
+      {
+        "name": "disk-6_Wash_the_bath_towels_v30",
+        "hours": 11.1629
+      },
+      {
+        "name": "disk-2_clothes_into_frame_ms-M202512230004_v30",
+        "hours": 11.1065
+      },
+      {
+        "name": "disk-2_cotton-dark_blue_with_whiter_ms-M202511180001_v30",
+        "hours": 11.0718
+      },
+      {
+        "name": "disk-13_fold_towels_5_v30",
+        "hours": 10.9546
+      },
+      {
+        "name": "disk-10_Vegetables_in_a_Basket_v30",
+        "hours": 10.9072
+      },
+      {
+        "name": "disk-11_Hair_Tie_Qrganizer_v30",
+        "hours": 10.89
+      },
+      {
+        "name": "disk-9_Blue_storage_paper_cups_v30",
+        "hours": 10.7384
+      },
+      {
+        "name": "disk-1_Stacking_cups_v30",
+        "hours": 10.6728
+      },
+      {
+        "name": "disk-14_White_soup_bowl_basket_v30",
+        "hours": 10.6518
+      },
+      {
+        "name": "disk-11_Take_out_the_vegetables_v30",
+        "hours": 10.2303
+      },
+      {
+        "name": "disk-2_classification_fruits_vegetable-M202510150005_v30",
+        "hours": 10.227
+      },
+      {
+        "name": "disk-7_Storage_mooncake_toy_v30",
+        "hours": 10.2054
+      },
+      {
+        "name": "disk-2_unscrew_test_tube_ms-M202510200003_v30",
+        "hours": 9.9895
+      },
+      {
+        "name": "disk-11_Shoe_Cabinet_Stationery_Storage_2_v30",
+        "hours": 9.8938
+      },
+      {
+        "name": "disk-10_Take_out_the_fruit_v30",
+        "hours": 9.7844
+      },
+      {
+        "name": "disk-12_Reset_the_seasoning_box_v30",
+        "hours": 9.6488
+      },
+      {
+        "name": "disk-2_folded_short_grey_ms_v30",
+        "hours": 9.2705
+      },
+      {
+        "name": "disk-5_Hair_Clip_Organizer_v30",
+        "hours": 9.2381
+      },
+      {
+        "name": "disk-2_steamed_eggs-M202510150004_v30",
+        "hours": 9.1922
+      },
+      {
+        "name": "disk-1_fold_towels_v30",
+        "hours": 8.8171
+      },
+      {
+        "name": "disk-2_put_medicine_back_box_ms-M20251015002_v30",
+        "hours": 8.5016
+      },
+      {
+        "name": "disk-2_spell_good_ms-M202503280001_v30",
+        "hours": 8.273
+      },
+      {
+        "name": "disk-3_place_potted_plant_ms-M202512280001_v30",
+        "hours": 8.1241
+      },
+      {
+        "name": "disk-2_透明试管的放置_ms__v30",
+        "hours": 7.9718
+      },
+      {
+        "name": "disk-3_number_crunching_ms-M202512190001_v30",
+        "hours": 7.8766
+      },
+      {
+        "name": "disk-2_place_fork_ms-M202501220004_v30",
+        "hours": 7.654
+      },
+      {
+        "name": "disk-2_place_eggs_ms-M202501220003_v30",
+        "hours": 7.4851
+      },
+      {
+        "name": "disk-2_tablespoon_sorting_ms-M202510150003_v30",
+        "hours": 7.4453
+      },
+      {
+        "name": "disk-3_Storage_bone_dish_v30",
+        "hours": 7.0244
+      },
+      {
+        "name": "disk-12_Shoe_boxing_v30",
+        "hours": 6.977
+      },
+      {
+        "name": "disk-7_Plating_mooncakes_v30",
+        "hours": 6.6478
+      },
+      {
+        "name": "disk-3_pick_coke_right_ms-M202512230002_v30",
+        "hours": 4.8692
+      },
+      {
+        "name": "disk-1_folding_clothes_cotton_grass-M202512030001_v30",
+        "hours": 4.4583
+      },
+      {
+        "name": "disk-13_fold_towels_3_v30",
+        "hours": 3.3396
+      }
+    ]
+  }
+}

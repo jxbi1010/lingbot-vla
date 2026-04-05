@@ -1,0 +1,39 @@
+# VLA finetune (inherits ego_finetune_v3.yaml) with cobot_magic LeRobot roots from
+# configs/tasks/cobot_magic_dataset_options.json. Pick nominal hours + A/B/C bundle.
+#
+# Usage (from lingbot-vla repo root):
+#   python tasks/vla/train_lingbotvla.py configs/vla/ego_finetune_v3_cobot_magic_tasks.yaml
+#
+# Edit these to switch data volume / bundle:
+#   data.cobot_magic_hours: 100 | 200 | 500 | 1000 | 2000
+#   data.cobot_magic_option: A | B | C
+#
+# Leave data.train_path unset (null); paths are resolved to
+#   cobot_magic_lerobot_root / <dataset folder name> for each entry in the JSON bundle.
+
+_base_: ego_finetune_v3.yaml
+
+data:
+  data_name: aloha_agilex
+  train_path: null
+  val_path: null
+  cobot_magic_task_options_json: /home/jianxin/jx_ws/lingbot-vla/configs/tasks/cobot_magic_dataset_options.json
+  cobot_magic_lerobot_root: /home/ss-oss1/data/user/yuqi/data/cobot_magic_raw_lerobot
+  cobot_magic_hours: 100
+  cobot_magic_option: A
+  norm_stats_file: assets/norm_stats/database_lerobot_00_norm.json
+  train_episode_subset: null
+  val_episode_subset: null
+  train_chunk_subset: null
+  val_chunk_subset: null
+  chunk_subset: null
+  episode_subset: null
+  dataset_pickle_cache_path: /home/ss-oss1/checkpoints/jianxin/cache/pickle/cobot_magic_bundle.pkl
+
+train:
+  wandb_name: ego_cobot_magic_v3_tasks
+  action_dim: 16
+  lr: 1.0e-4
+  micro_batch_size: 32
+  global_batch_size: 1024
+  output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_cobot_magic_v3_tasks

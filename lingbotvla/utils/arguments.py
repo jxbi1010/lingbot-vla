@@ -191,9 +191,10 @@ def normalize_lerobot_roots(paths: List[str]) -> List[str]:
 
 @dataclass
 class DataArguments:
-    train_path: List[str] = field(
+    train_path: Optional[List[str]] = field(
+        default=None,
         metadata={
-            "help": "LeRobot dataset root path(s). Prefer a YAML list; CLI: repeat `--data.train_path P1 --data.train_path P2`. Comma-separated strings in one entry are still split for compatibility."
+            "help": "LeRobot dataset root path(s). Prefer a YAML list; CLI: repeat `--data.train_path P1 --data.train_path P2`. Comma-separated strings in one entry are still split for compatibility. Leave null when using cobot_magic_* task-bundle fields (train_lingbotvla MyDataArguments)."
         },
     )
     train_size: int = field(
@@ -307,6 +308,8 @@ class DataArguments:
     )
 
     def __post_init__(self):
+        if self.train_path is None:
+            self.train_path = []
         self.train_path = normalize_lerobot_roots(self.train_path)
         if not self.train_path:
             raise ValueError("data.train_path must contain at least one non-empty path")
@@ -849,12 +852,20 @@ def parse_args(rootclass: T) -> T:
                     parser_kwargs["type"] = _parse_int_or_str
                 else:
                     parser_kwargs["type"] = elem_type
-                parser_kwargs["nargs"] = "+"
                 list_fields.add(f"{base}.{attr.name}")
                 if attr.default_factory is not MISSING:
                     parser_kwargs["default"] = attr.default_factory()
+                    parser_kwargs["nargs"] = "+"
                 elif attr.default is MISSING:
                     parser_kwargs["required"] = True
+                    parser_kwargs["nargs"] = "+"
+                elif attr.default is None:
+                    # Optional[List[...]] = None: allow empty / omitted train_path (resolved later e.g. cobot_magic_*).
+                    parser_kwargs["nargs"] = "*"
+                    parser_kwargs["default"] = None
+                else:
+                    parser_kwargs["nargs"] = "+"
+                    parser_kwargs["default"] = attr.default
 
             elif isclass(origin_type) and issubclass(origin_type, dict):
                 parser_kwargs["type"] = str  # parse dict inputs with json string
