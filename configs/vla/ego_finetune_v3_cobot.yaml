@@ -33,7 +33,7 @@ data:
 train:
   wandb_name: ego_cobot_magic_v3_tasks
   action_dim: 16
-  lr: 1.0e-4
+  lr: 4.0e-4
   micro_batch_size: 32
   global_batch_size: 1024
   output_dir: /home/ss-oss1/checkpoints/jianxin/output/ego_cobot_magic_v3_tasks
